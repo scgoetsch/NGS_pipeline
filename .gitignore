@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .tmp-pixi-test/
 .tmp-ci/
+.snakemake/
+genetics/CATCH-UP/DNase_example/QCs/
+genetics/CATCH-UP/DNase_example/logs/
+genetics/CATCH-UP/DNase_example/results/
