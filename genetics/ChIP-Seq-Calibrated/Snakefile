@@ -1,63 +1,143 @@
-import os, sys, shutil, re
+import os
+import sys
+import re
 import pandas as pd
+
+from snakemake.utils import min_version
+from snakemake.utils import validate
+
+from workflow_utils import normalize_config, prepare_workflow_inputs
+
+min_version("7.0.0")
 
 configfile: "config/analysis.yaml"
 
+config = normalize_config(config)
 validate(config, schema="config/schema/config.schema.yaml")
-    
-if config["single_paired_end"] not in ['single', 'paired']:
+
+if config["single_paired_end"] not in ["single", "paired"]:
     print("config['single_paired_end'] must be 'single' or 'paired'!")
     sys.exit()
 
-if config["input_provided"] not in ['True', 'False']:
-    print("config['input_provided'] must be 'True' or 'False'!")
-    sys.exit()
-    
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]):
-    os.makedirs(config["analysis_name"]+os.sep+config["single_paired_folder"])    
-    
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt"):
-    if config["single_paired_end"] == 'paired':
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", 'w') as nfile:
-            df = pd.read_csv("fastqfile_home_dir.txt", header=None, sep='\t')
-            if config["input_provided"] == "True":
-                for f1, f2 in zip(df[0].tolist(), df[1].tolist()):
-                    nfile.write(f1+"_R1.fastq.gz\n")
-                    nfile.write(f1+"_R2.fastq.gz\n")
-                    nfile.write(f2+"_R1.fastq.gz\n")
-                    nfile.write(f2+"_R2.fastq.gz\n")
-            else:
-                for f in df[0].tolist():
-                    nfile.write(f+"_R1.fastq.gz\n")
-                    nfile.write(f+"_R2.fastq.gz\n")
-    else:
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", 'w') as nfile:
-            df = pd.read_csv("fastqfile_home_dir.txt", header=None, sep='\t')
-            if config["input_provided"] == "True":
-                for f1, f2 in zip(df[0].tolist(), df[1].tolist()):
-                    nfile.write(f1+".fastq.gz\n")
-                    nfile.write(f2+".fastq.gz\n")
-            else:
-                for f in df[0].tolist():
-                    nfile.write(f+".fastq.gz\n")
+workflow_inputs = prepare_workflow_inputs(config, workflow_dir=".")
+origin_fastq = workflow_inputs["origin_fastq"]
+samples_r = workflow_inputs["samples_r"]
 
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples_pairing.csv"):
-    df = pd.read_csv("fastqfile_home_dir.txt", header=None, sep='\t')
-    if config["input_provided"] == "True":
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples_pairing.csv", 'w') as nfile:
-            for i, j in zip(df[0].tolist(), df[1].tolist()):
-                nfile.write("%s\t%s\n"%(j, i))
-                nfile.write("%s\t%s\n"%(i, i))
-    else:
-        df[1] = df[0]
-        df.to_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples_pairing.csv", sep='\t', index=False, header=None)
 
-origin_fastq_raw = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", header=None)[0]
-origin_fastq     = [of.split(".fastq.gz")[0] for of in list(origin_fastq_raw)]
+def build_track_base_url(config):
+    parts = [config["bigDataUrl"].rstrip("/")]
+    for key in ["public_output_dir", "tag_public_output_dir"]:
+        value = str(config.get(key, "")).strip().strip("/")
+        if value:
+            parts.append(value)
+    return "/".join(parts)
 
-samples_r=pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", header=None)[0]
-if config["single_paired_end"]=="paired":
-    samples_r = [re.sub("_R\d+.fastq.gz", "", sr) for sr in list(samples_r)]
+
+track_base_url = build_track_base_url(config)
+
+analysis_samples = list(samples_r)
+raw_read_samples = list(origin_fastq)
+
+
+def moved_fastq_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["reads"], f"{sample}.fastq.gz")
+        for sample in raw_read_samples
+    ]
+
+
+def trimming_qc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["trimming_qc"], f"{sample}_qc.txt")
+        for sample in analysis_samples
+    ]
+
+
+def bowtie2_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["bowtie2"], f"{sample}.bam")
+        for sample in analysis_samples
+    ]
+
+
+def sorted_bam_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["sorted"], f"{sample}_sorted.bam")
+        for sample in analysis_samples
+    ]
+
+
+def duplicate_bam_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["duplicates"], f"{sample}_sorted_dedup.bam")
+        for sample in analysis_samples
+    ]
+
+
+def split_genome_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["splitgenome"], f"{sample}_sorted_dedup.bam")
+        for sample in analysis_samples
+    ]
+
+
+def read_count_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["readcounts"], f"{sample}_readCounts.txt")
+        for sample in analysis_samples
+    ]
+
+
+def downsampling_log_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["downsampling_log"], f"{sample}_sorted_dedup_downsampled.txt")
+        for sample in analysis_samples
+    ]
+
+
+def bam_coverage_log_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["bam_coverage_log"], f"{sample}_downsampled.txt")
+        for sample in analysis_samples
+    ]
+
+
+def peak_log_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["peaks_log"], f"{sample}_downsampled.txt")
+        for sample in analysis_samples
+    ]
+
+
+def read_qc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["reads_qc"], f"{sample}.html")
+        for sample in raw_read_samples
+    ]
+
+
+def bowtie2_multiqc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["bowtie2_qc"], f"{sample}_multiqc.html")
+        for sample in analysis_samples
+    ]
+
+
+def duplicates_multiqc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["duplicates_qc"], f"{sample}_sorted_dedup_multiqc.html")
+        for sample in analysis_samples
+    ]
+
+
+def bam_coverage_bw_targets():
+    genomes = [config["genome"], config["spikein"]]
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["bam_coverage"], f"{sample}_sorted_dedup_downsampled_{genome}.bw")
+        for sample in analysis_samples
+        for genome in genomes
+    ]
+
 
 include: "rules/01_upstream.smk"
 include: "rules/02_qc.smk"
@@ -66,38 +146,19 @@ include: "rules/04_folders.smk"
 
 rule all:
     input:
-        ################################ start 01_upstream.smk ################################
-        ### 01 move fastq files from original directory to reads directory
-        expand(os.path.join(config["analysis_name"]+os.sep+config["reads"], "{sample_or}.fastq.gz"), sample_or=list(origin_fastq)),
-        ### 02 remove adapters
-        expand(os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"), sample=list(samples_r)),
-        ### 03 mapping using bowtie2
-        expand(os.path.join(config["analysis_name"]+os.sep+config["bowtie2"], "{sample}.bam"), sample=list(samples_r)),
-        ### 04 sorting bam files
-        expand(os.path.join(config["analysis_name"]+os.sep+config["sorted"], "{sample}_sorted.bam"), sample=list(samples_r)),
-        ### 05 removing duplicates
-        expand(os.path.join(config["analysis_name"]+os.sep+config["duplicates"], "{sample}_sorted_dedup.bam"), sample=list(samples_r)), 
-        ### 06 split genome
-        expand(os.path.join(config["analysis_name"]+os.sep+config["splitgenome"], "{sample}_sorted_dedup.bam"), sample=list(samples_r)),
-        ### 07 read counts
-        expand(os.path.join(config["analysis_name"]+os.sep+config["readcounts"], "{sample}_readCounts.txt"), sample=list(samples_r)),
-        ### 08 downsampling factor calculations
-        os.path.join(config["analysis_name"]+os.sep+config["downsampling_factor_log"], "downsamplingCalculations.txt"),
-        ### 09 downsampling
-        expand(os.path.join(config["analysis_name"]+os.sep+config["downsampling_log"], "{sample}_sorted_dedup_downsampled.txt"), sample=list(samples_r)),
-        ### 10 bam coverage files
-        expand(os.path.join(config["analysis_name"]+os.sep+config["bam_coverage_log"], "{sample}_downsampled.txt"), sample=list(samples_r)),
-        ## 11 peak calling
-        expand(os.path.join(config["analysis_name"]+os.sep+config["peaks_log"], "{sample}_downsampled.txt"), sample=list(samples_r)),
-        ###############################  end 01_upstream.smk  ################################
-        ################################### start 02_qc.smk ###################################
-        expand(os.path.join(config["analysis_name"]+os.sep+config["reads_qc"], "{sample_or}.html"), sample_or=list(origin_fastq)),
-        expand(os.path.join(config["analysis_name"]+os.sep+config["bowtie2_qc"], "{sample}_multiqc.html"), sample=list(samples_r)),
-        expand(os.path.join(config["analysis_name"]+os.sep+config["duplicates_qc"], "{sample}_sorted_dedup_multiqc.html"), sample=list(samples_r)),
-        ###################################  end 02_qc.smk  ###################################
-        ################################ start 03_trackDb.smk #################################
-        os.path.join(config["analysis_name"]+os.sep+config["track"], "trackDb.txt"),
-        ################################  end 03_trackDb.smk  #################################
-        ################################ start 04_folders.smk #################################
-        os.path.join(config["analysis_name"]+os.sep+config["cleaning"], "moving.txt"),
-        ################################  end 04_folders.smk  #################################
+        moved_fastq_targets(),
+        trimming_qc_targets(),
+        bowtie2_targets(),
+        sorted_bam_targets(),
+        duplicate_bam_targets(),
+        split_genome_targets(),
+        read_count_targets(),
+        os.path.join(config["analysis_name"] + os.sep + config["downsampling_factor_log"], "downsamplingCalculations.txt"),
+        downsampling_log_targets(),
+        bam_coverage_log_targets(),
+        peak_log_targets(),
+        read_qc_targets(),
+        bowtie2_multiqc_targets(),
+        duplicates_multiqc_targets(),
+        os.path.join(config["analysis_name"] + os.sep + config["track"], "trackDb.txt"),
+        os.path.join(config["analysis_name"] + os.sep + config["cleaning"], "moving.txt")

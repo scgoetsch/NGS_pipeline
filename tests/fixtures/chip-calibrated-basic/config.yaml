@@ -1,0 +1,62 @@
+analysis_name: ".tmp-ci/analysis"
+fastq_home_dir: "../../tests/fixtures/chip-calibrated-basic/fastqs"
+sample_sheet: "../../tests/fixtures/chip-calibrated-basic/samples.tsv"
+single_paired_end: "paired"
+cutadapters_bool: false
+bowtie2_dir: "/tmp/fake-index"
+genome: "mm39"
+spikein: "hg38"
+input_provided: true
+bigDataUrl: "https://example.org/"
+move_output_files: false
+output_dir: ""
+tag_output_dir: ""
+move_bw_public_folder: false
+public_output_dir: ""
+tag_public_output_dir: ""
+trimming_SE_extra: "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20"
+trimming_PE_extra: "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20"
+bowtie2_extra: "-p 2 --no-mixed --no-discordant"
+samtools_filtering_extra: "-b -h -S -F4"
+samtools_sort_extra: "-m 1G"
+mark_duplicates_extra: "--REMOVE_DUPLICATES False"
+samtools_index_extra: ""
+bam_coverage_params1: "-bs 1 --normalizeUsing RPKM"
+bam_coverage_params2: "--extendReads"
+delete_intermediate_files: false
+single_paired_folder_rm: false
+reads_rm: false
+trimming_rm: false
+bowtie2_rm: false
+sorted_rm: false
+duplicates_rm: false
+splitgenome_rm: false
+readcounts_rm: false
+downsampling_factor_rm: false
+downsampling_rm: false
+bam_coverage_rm: false
+peaks_rm: false
+track_rm: false
+single_paired_folder: "results/00_fastq_home_dir"
+reads: "results/01_reads"
+reads_qc: "QCs/01_reads"
+trimming: "results/02_trimming"
+trimming_qc: "QCs/02_trimming"
+bowtie2: "results/03_bowtie2"
+bowtie2_qc: "QCs/03_bowtie2"
+sorted: "results/04_sorted"
+duplicates: "results/05_duplicates"
+duplicates_qc: "QCs/05_duplicates"
+splitgenome: "results/06_split_genome"
+readcounts: "results/07_read_counts"
+readcounts_tmp: "logs/07_read_counts_tmp"
+downsampling_factor: "results/08_downsampling_factor"
+downsampling_factor_log: "logs/08_downsampling_factor"
+downsampling: "results/09_downsampling"
+downsampling_log: "logs/09_downsampling"
+bam_coverage: "results/10_bam_coverages"
+bam_coverage_log: "logs/10_bam_coverages"
+peaks: "results/11_peak_calling"
+peaks_log: "logs/11_peak_calling/"
+track: "results/12_track"
+cleaning: "results/"

@@ -1,182 +1,184 @@
 $schema: "http://json-schema.org/draft-04/schema#"
 
 _yamldoc_title: Parameter Reference
-_yamldoc_description: All of the parameters available for tuning avocato may be found on this page. It is automatically generated from the general configuration template.
+_yamldoc_description: Parameters available for the bulk RNA-seq workflow.
+
+definitions:
+  bool_or_legacy_bool:
+    anyOf:
+      - type: boolean
+      - type: string
+        enum: ["True", "False", "true", "false"]
 
 type: object
 
 properties:
-  analysis_name: 
+  analysis_name:
     type: string
 
-  fastq_home_dir: 
+  fastq_home_dir:
     type: string
 
-  single_paired_end: 
+  sample_sheet:
+    type: string
+
+  single_paired_end:
     type: string
     enum: [single, paired]
 
-  concatenate_fastq: 
-    type: string
-    enum: ["True", "False"]
+  concatenate_fastq:
+    $ref: "#/definitions/bool_or_legacy_bool"
 
-  cutadapters_bool: 
-    type: string
-    enum: ["True", "False"]
+  cutadapters_bool:
+    $ref: "#/definitions/bool_or_legacy_bool"
 
-  star_dir: 
+  star_dir:
     type: string
 
   gtf_annotation:
     type: string
 
-  genome_built_version: 
+  genome_built_version:
     type: string
     enum: [hg19, hg38, mm9, mm10, mm39]
 
-  merge_bams: 
-    type: string
-    enum: ["True", "False"]
+  merge_bams:
+    $ref: "#/definitions/bool_or_legacy_bool"
 
-  bigDataUrl: 
-    type: string
-
-  move_output_files: 
-    type: string
-    enum: ["True", "False"]
-
-  output_dir: 
+  bigDataUrl:
     type: string
 
-  tag_output_dir: 
+  move_output_files:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  output_dir:
     type: string
 
-  move_bw_public_folder: 
-    type: string
-    enum: ["True", "False"]
-
-  public_output_dir: 
+  tag_output_dir:
     type: string
 
-  tag_public_output_dir: 
+  move_bw_public_folder:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  public_output_dir:
     type: string
 
-  trimming_SE_extra: 
+  tag_public_output_dir:
     type: string
 
-  trimming_PE_extra: 
+  trimming_SE_extra:
     type: string
 
-  samtools_sort_extra: 
+  trimming_PE_extra:
     type: string
 
-  mark_duplicates_extra: 
+  samtools_sort_extra:
     type: string
 
-  samtools_index_extra: 
+  mark_duplicates_extra:
     type: string
 
-  bam_coverage_params1: 
+  samtools_index_extra:
     type: string
 
-  bam_coverage_params2: 
+  bam_coverage_params1:
     type: string
 
-  delete_intermediate_files: 
-    type: string
-    enum: ["True", "False"]
-
-  single_paired_folder_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  reads_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  trimming_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  star_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  sorted_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  duplicates_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  merge_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  bam_coverage_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  feature_counts_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  track_rm: 
-    type: string
-    enum: ["True", "False"]
-
-  single_paired_folder: 
+  bam_coverage_params2:
     type: string
 
-  reads: 
+  delete_intermediate_files:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  single_paired_folder_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  reads_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  trimming_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  star_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  sorted_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  duplicates_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  merge_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  indices_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  bam_coverage_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  feature_counts_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  track_rm:
+    $ref: "#/definitions/bool_or_legacy_bool"
+
+  tmp:
     type: string
 
-  reads_qc: 
+  single_paired_folder:
     type: string
 
-  reads_concat: 
+  reads:
     type: string
 
-  reads_concat_qc: 
+  reads_qc:
     type: string
 
-  trimming: 
+  reads_concat:
     type: string
 
-  trimming_qc: 
+  reads_concat_qc:
     type: string
 
-  star: 
+  trimming:
     type: string
 
-  star_qc: 
+  trimming_qc:
     type: string
 
-  sorted: 
+  star:
     type: string
 
-  duplicates: 
+  star_qc:
     type: string
 
-  duplicates_qc: 
+  sorted:
     type: string
 
-  merge: 
+  duplicates:
     type: string
 
-  merge_qc: 
+  duplicates_qc:
     type: string
 
-  bam_coverage: 
+  merge:
     type: string
 
-  feature_counts: 
+  merge_qc:
     type: string
 
-  track: 
+  indices:
     type: string
 
-  cleaning: 
+  bam_coverage:
     type: string
-    
+
+  feature_counts:
+    type: string
+
+  track:
+    type: string
+
+  cleaning:
+    type: string

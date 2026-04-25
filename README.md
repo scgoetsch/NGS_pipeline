@@ -32,7 +32,46 @@ Designed for the analysis of bulk RNA-seq data using the [STAR](https://github.c
 
 ***
 ## Getting started
-All of the upstream pipelines can be run using the __upstream__ conda environment, please follow the installation instruction detailed below. In doing so, the anlaysis is highly reproducible. 
+All of the upstream pipelines can be run using either the original __upstream__ conda environment or the new Pixi environment.
+
+See also:
+- [`PIXI.md`](PIXI.md) for Pixi usage
+- [`MODERNIZATION.md`](MODERNIZATION.md) for modernization docs index
+- [`docs/modernization/status.md`](docs/modernization/status.md) for completed updates
+- [`docs/modernization/roadmap.md`](docs/modernization/roadmap.md) for proposed next steps
+- [`docs/modernization/sample-sheets.md`](docs/modernization/sample-sheets.md) for current sample-sheet formats
+- [`docs/modernization/review-notes.md`](docs/modernization/review-notes.md) for suggested commit plan / PR summary
+- [`tests/fixtures/README.md`](tests/fixtures/README.md) for reusable CI/local dry-run fixtures
+
+### Quick start with Pixi
+
+From the repository root:
+
+```bash
+pixi install
+pixi run catch-up-example-dryrun
+```
+
+Useful Pixi tasks:
+
+```bash
+PIXI_CORES=4 pixi run catch-up
+pixi install -e reference-genomes && pixi run -e reference-genomes reference-genomes
+pixi install -e build-calibration-genome && pixi run -e build-calibration-genome build-calibration-genome
+pixi install -e ucsc-track-hub && pixi run -e ucsc-track-hub ucsc-track-hub
+pixi install -e chip-calibrated && pixi run -e chip-calibrated chip-calibrated
+pixi install -e bulk-rna && pixi run -e bulk-rna bulk-rna
+```
+
+Reusable dry-run fixtures from the repository root:
+
+```bash
+pixi run bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=../../tests/fixtures/catch-up-merge-aware/config.yaml -n all --cores 1'
+pixi run -e chip-calibrated bash -lc 'cd genetics/ChIP-Seq-Calibrated && snakemake --configfile=../../tests/fixtures/chip-calibrated-basic/config.yaml -n all --cores 1'
+pixi run -e bulk-rna bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=../../tests/fixtures/bulk-rna-merge-aware/config.yaml -n all --cores 1'
+```
+
+See [`PIXI.md`](PIXI.md) for details.
 
 ### Installation instructions for conda environment
 
@@ -86,7 +125,10 @@ conda activate upstream
 You can then use all of our upstream pipelines using this environment, enjoy!
 
 ### Environment installation note
-CATCH-UP has been successfully tested for the following operating systems: Ubuntu, CentOS, macOS (Intel CPU), and Windows. Unfortunately, it is not possible to install on macOS with M CPUs at the moment. 
+CATCH-UP has been successfully tested for the following operating systems: Ubuntu, CentOS, macOS (Intel CPU), and Windows. Unfortunately, it is not possible to install on macOS with M CPUs at the moment.
+
+The Pixi environment added in this fork is currently targeted at `linux-64`, which is the primary HPC / genomics use case.
+
 For any error in the installation step, please open an [issue](https://github.com/Genome-Function-Initiative-Oxford/UpStreamPipeline/issues) so we can give a general solution for users.
 
 ### Reproducibility :repeat:

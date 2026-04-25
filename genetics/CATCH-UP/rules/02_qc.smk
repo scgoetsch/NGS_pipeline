@@ -1,5 +1,3 @@
-samples_r = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", index_col="sample", sep="\t")
-
 genomeV = config['genome_built_version']
 
 rule fastq_fastqc:
@@ -17,7 +15,7 @@ rule fastq_fastqc:
 
 rule trimming_fastqc:
     input:
-        expand(os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{samp}_qc.txt"), samp=list(samples_r.index)),
+        os.path.join(config["analysis_name"]+os.sep+config["trimming"], "{sample_or}.fastq.gz"),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample_or}_fastqc.txt"),
     params:

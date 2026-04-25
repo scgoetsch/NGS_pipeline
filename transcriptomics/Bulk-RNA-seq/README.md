@@ -13,11 +13,31 @@ Follow the instructions on [UpStreamPipeline](https://github.com/Genome-Function
 
 #### 2. Modify the config.yaml file :computer:
 
-Detailed instructions are provided in the [config.yaml](./config/analysis.yaml) file for editing the necessary parameters.   
+Detailed instructions are provided in the [config.yaml](./config/analysis.yaml) file for editing the necessary parameters.
 
-Key points:   
-- Specify whether your fastq files are single- or paired-end
+This pipeline now supports two input metadata formats:
+
+1. **Modern sample sheet** via `sample_sheet` in the config file
+2. **Legacy text files**: `1_fastqfile_home_dir.txt`, `2_fastqfile_concat.txt`, `3_merge_bams.txt`
+
+The recommended modern sample sheet is TSV or CSV with these columns:
+
+- `fastq_prefix` (required)
+- `sample_name` (preferred for explicit analysis-level grouping)
+- `merge_group` (preferred for explicit merge grouping)
+- legacy aliases still supported: `concat_sample`, `merge_sample`
+
+Recommended examples:
+- bundled example sample sheet: [`config/example.samples.tsv`](./config/example.samples.tsv)
+- reusable dry-run fixture: [`../../tests/fixtures/bulk-rna-merge-aware/`](../../tests/fixtures/bulk-rna-merge-aware)
+
+If `concatenate_fastq: true`, provide `sample_name` (or legacy `concat_sample`).
+If `merge_bams: true`, provide `merge_group` (or legacy `merge_sample`).
+
+Key points:
+- Specify whether your FASTQ files are single- or paired-end
 - Provide the genome build you want to align to
+- Boolean values may be written as YAML booleans (`true` / `false`) or legacy strings (`"True"` / `"False"`)
 
 ***
 
@@ -29,14 +49,25 @@ When running the pipeline, results, QCs, and logs folders will be automatically 
 
 
 ***
-### How to run the Calibrated ChIP pipeline
-Option #1: run locally.   
-Run snakemake selecting number of cores (for parallelisation purpose) 
+### How to run the bulk RNA-seq pipeline
+Option #1: run locally with Pixi from the repository root
+```bash
+pixi install -e bulk-rna
+PIXI_CORES=4 pixi run -e bulk-rna bulk-rna
 ```
+
+Option #1a: reusable fixture dry-run from the repository root
+```bash
+pixi run -e bulk-rna bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=../../tests/fixtures/bulk-rna-merge-aware/config.yaml -n all --cores 1'
+```
+
+Option #2: run locally with Snakemake
+```bash
 snakemake --configfile=config/analysis.yaml all --cores 4
 ```
-Option #2: SLURM.   
-Modify parameters of submit.sh, then submit the job as follows 
-```
-sbatch submit.sh
+
+Option #3: SLURM
+Modify parameters of `submit.sh` (conda-based) or `submit.pixi.sh` (Pixi-based), then submit:
+```bash
+sbatch submit.pixi.sh
 ```

@@ -1,14 +1,10 @@
-samples_r=pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", header=None)[0]
-if config["single_paired_end"]=="paired":
-    samples_r = [re.sub("_R\d+.fastq.gz", "", sr) for sr in list(samples_r)]
-else:
-    samples_r = [re.sub(".fastq.gz", "", sr) for sr in list(samples_r)]
+def read_inputs_for_sample(wildcards, folder_key="reads"):
+    base = os.path.join(config["analysis_name"] + os.sep + config[folder_key], wildcards.sample)
+    if config["single_paired_end"] == "paired":
+        return [f"{base}_R1.fastq.gz", f"{base}_R2.fastq.gz"]
+    return [f"{base}.fastq.gz"]
 
-origin_fastq_raw=pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", header=None)[0]
-origin_fastq    =[of.split(".fastq.gz")[0] for of in list(origin_fastq_raw)]
 
-ext_bowtie2=["_R1.fastq.gz", "_R2.fastq.gz"]
-    
 rule move_fastq:
     input:
         r1=os.path.join(config["fastq_home_dir"], "{sample_or}.fastq.gz"),
@@ -27,7 +23,7 @@ rule move_fastq:
 
 rule trimming:
     input:
-        expand(os.path.join(config["analysis_name"]+os.sep+config["reads"], "{samp}.fastq.gz"), samp=list(origin_fastq)),
+        read_inputs_for_sample,
     output:
         os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"),
     params:
@@ -71,16 +67,16 @@ rule trimming:
             fi
         """
 
-        os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"),
 
 rule bowtie2:
     input:
+        os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["bowtie2"], "{sample}.bam"),
     params:
         config_name=config["analysis_name"],
-        sample_p=expand(os.path.join(config["analysis_name"]+os.sep+config["trimming"], "{samples}"), samples=["{sample}%s"%extB for extB in ext_bowtie2]),
-        sample_s=expand(os.path.join(config["analysis_name"]+os.sep+config["trimming"], "{samples}"), samples=["{sample}.fastq.gz"]),
+        sample_p=lambda wildcards: read_inputs_for_sample(wildcards, folder_key="trimming"),
+        sample_s=lambda wildcards: read_inputs_for_sample(wildcards, folder_key="trimming"),
         idx=config["bowtie2_dir"],
         out_folder=config["bowtie2"],
         threads="4",
@@ -173,8 +169,8 @@ rule read_counts:
 
 
 rule downsampling_factor:
-    input: 
-        expand(os.path.join(config["analysis_name"]+os.sep+config["readcounts"], "{sample}_readCounts.txt"), sample=list(samples_r)),
+    input:
+        read_count_targets(),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["downsampling_factor_log"], "downsamplingCalculations.txt"),
     params:
@@ -223,13 +219,13 @@ rule bam_coverage:
     input:
         os.path.join(config["analysis_name"]+os.sep+config["downsampling_log"], "{sample}_sorted_dedup_downsampled.txt"),
     output:
-        os.path.join(config["analysis_name"]+os.sep+config["bam_coverage_log"], "{sample}_downsampled.txt"),
+        marker=os.path.join(config["analysis_name"]+os.sep+config["bam_coverage_log"], "{sample}_downsampled.txt"),
+        genome_bw=os.path.join(config["analysis_name"]+os.sep+config["bam_coverage"], "{sample}_sorted_dedup_downsampled_%s.bw"%config["genome"]),
+        spikein_bw=os.path.join(config["analysis_name"]+os.sep+config["bam_coverage"], "{sample}_sorted_dedup_downsampled_%s.bw"%config["spikein"]),
     params:
         config_name=config["analysis_name"],
         i1=os.path.join(config["analysis_name"]+os.sep+config["downsampling"], "{sample}_sorted_dedup_downsampled_%s.bam"%config["genome"]),
         i2=os.path.join(config["analysis_name"]+os.sep+config["downsampling"], "{sample}_sorted_dedup_downsampled_%s.bam"%config["spikein"]),
-        o1=os.path.join(config["analysis_name"]+os.sep+config["bam_coverage"], "{sample}_sorted_dedup_downsampled_%s.bw"%config["genome"]),
-        o2=os.path.join(config["analysis_name"]+os.sep+config["bam_coverage"], "{sample}_sorted_dedup_downsampled_%s.bw"%config["spikein"]),
         extra1=config["bam_coverage_params1"],
         extra2=config["bam_coverage_params2"],
         end=config["single_paired_end"],
@@ -239,14 +235,14 @@ rule bam_coverage:
             
             if [ {params.end} == "paired" ]
             then
-                bamCoverage -b {params.i1} -o {params.o1} {params.extra1} {params.extra2}
-                bamCoverage -b {params.i2} -o {params.o2} {params.extra1} {params.extra2}
+                bamCoverage -b {params.i1} -o {output.genome_bw} {params.extra1} {params.extra2}
+                bamCoverage -b {params.i2} -o {output.spikein_bw} {params.extra1} {params.extra2}
             else
-                bamCoverage -b {params.i1} -o {params.o1} {params.extra1}
-                bamCoverage -b {params.i2} -o {params.o2} {params.extra1}
+                bamCoverage -b {params.i1} -o {output.genome_bw} {params.extra1}
+                bamCoverage -b {params.i2} -o {output.spikein_bw} {params.extra1}
             fi
             
-            echo {wildcards.sample} bam_coverage DONE! >> {output}
+            echo {wildcards.sample} bam_coverage DONE! >> {output.marker}
         """
 
 

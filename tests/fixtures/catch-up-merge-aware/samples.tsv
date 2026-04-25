@@ -1,0 +1,5 @@
+fastq_prefix	sample_name	merge_group
+rep1_lane1	rep1	merged_sample
+rep1_lane2	rep1	merged_sample
+rep2_lane1	rep2	merged_sample
+rep2_lane2	rep2	merged_sample

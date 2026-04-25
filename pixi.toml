@@ -1,0 +1,100 @@
+[workspace]
+name = "upstreampipeline"
+version = "0.2.0"
+description = "Pixi environments for the UpStreamPipeline Snakemake workflows."
+authors = ["Local adaptation of Genome Function Initiative Oxford UpStreamPipeline"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[feature.common.dependencies]
+python = "3.9.*"
+pandas = ">=1.5,<2.3"
+graphviz = ">=12,<15"
+snakemake = ">=7,<8"
+snakemake-wrapper-utils = ">=0.5,<0.9"
+
+[feature.catch-up.dependencies]
+bedtools = ">=2.31,<2.32"
+bowtie2 = ">=2.5,<2.6"
+bwa = ">=0.7.19,<0.8"
+bwa-mem2 = ">=2.3,<2.4"
+bx-python = ">=0.14,<0.15"
+cutadapt = ">=4,<6"
+deeptools = ">=3.5,<3.6"
+fastqc = "0.12.*"
+lanceotron = ">=1.2,<1.3"
+macs2 = ">=2.2,<2.3"
+multiqc = ">=1.14,<2"
+picard = ">=3,<4"
+pybigwig = ">=0.3,<0.4"
+sambamba = ">=1.0,<1.1"
+samtools = ">=1.16,<2"
+seaborn = ">=0.12,<0.14"
+tabulate = ">=0.8,<0.11"
+trimmomatic = ">=0.39,<0.41"
+typing_extensions = ">=4,<5"
+ucsc-bedgraphtobigwig = ">=377,<500"
+
+[feature.reference-genomes.dependencies]
+bowtie2 = ">=2.5,<2.6"
+bwa-mem2 = ">=2.3,<2.4"
+
+[feature.build-calibration-genome.dependencies]
+bowtie2 = ">=2.5,<2.6"
+
+[feature.ucsc-track-hub.dependencies]
+ucsc-bedgraphtobigwig = ">=377,<500"
+
+[feature.chip-calibrated.dependencies]
+bedtools = ">=2.31,<2.32"
+bowtie2 = ">=2.5,<2.6"
+fastqc = "0.12.*"
+lanceotron = ">=1.2,<1.3"
+multiqc = ">=1.14,<2"
+picard = ">=3,<4"
+sambamba = ">=1.0,<1.1"
+samtools = ">=1.16,<2"
+trimmomatic = ">=0.39,<0.41"
+
+[feature.bulk-rna.dependencies]
+fastqc = "0.12.*"
+multiqc = ">=1.14,<2"
+r-ggplot2 = ">=3.4,<5"
+r-rcolorbrewer = ">=1.1_3,<2"
+star = ">=2.7,<2.8"
+subread = ">=2.0,<2.2"
+trimmomatic = ">=0.39,<0.41"
+
+[tasks]
+install-note = "echo 'Run: pixi install && pixi run catch-up-example-dryrun'"
+
+[feature.catch-up.tasks]
+catch-up-example-dryrun = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/DNase_example.yaml -n all --cores 1'"
+catch-up-example = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/DNase_example.yaml all --cores ${PIXI_CORES:-2}'"
+catch-up-dryrun = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/analysis.yaml -n all --cores 1'"
+catch-up = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-4}'"
+
+[feature.reference-genomes.tasks]
+reference-genomes = "bash -lc 'cd Reference_Genomes && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-1}'"
+
+[feature.build-calibration-genome.tasks]
+build-calibration-genome = "bash -lc 'cd Build-Calibration-Genome && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-1}'"
+
+[feature.ucsc-track-hub.tasks]
+ucsc-track-hub = "bash -lc 'cd build_UCSC_track_hub && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-1}'"
+
+[feature.chip-calibrated.tasks]
+chip-calibrated = "bash -lc 'cd genetics/ChIP-Seq-Calibrated && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-4}'"
+
+[feature.bulk-rna.tasks]
+bulk-rna = "bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-4}'"
+
+[environments]
+default = ["common", "catch-up"]
+catch-up = ["common", "catch-up"]
+reference-genomes = ["common", "reference-genomes"]
+build-calibration-genome = ["common", "build-calibration-genome"]
+ucsc-track-hub = ["common", "ucsc-track-hub"]
+chip-calibrated = ["common", "chip-calibrated"]
+bulk-rna = ["common", "bulk-rna"]
+all = ["common", "catch-up", "reference-genomes", "build-calibration-genome", "ucsc-track-hub", "chip-calibrated", "bulk-rna"]

@@ -1,22 +1,13 @@
 from datetime import datetime
 
-samples_r = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", index_col="sample", sep="\t")
-
 genomeV = config['genome_built_version']
 
-if config['merge_bams']=='True':
-    try:
-        samples = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"3_merge_bams.txt", header=None)[0].tolist()
-    except:
-        print("You must provide 'merge.txt' file")
-        sys.exit()
-else:
-    samples = list(samples_r.index)
+samples = merge_sample
 
 
 rule cleaning_folders:
     input:
-        expand(os.path.join(config["analysis_name"]+os.sep+config["bam_coverage"], "{sample_merged}_%s.bw"%genomeV), sample_merged=samples),
+        bam_coverage_targets(),
 
     output:
         os.path.join(config["analysis_name"]+os.sep+config["cleaning"], "moving.txt"),

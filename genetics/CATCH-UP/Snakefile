@@ -1,121 +1,124 @@
-import os, sys, shutil
+import os
+import sys
 import pandas as pd
-from snakemake.utils import validate
+
 from snakemake.utils import min_version
+from snakemake.utils import validate
+
+from workflow_utils import normalize_config, prepare_workflow_inputs
 
 min_version("7.0.0")
 
 configfile: "config/analysis.yaml"
 
+config = normalize_config(config)
 validate(config, schema="config/schema/config.schema.yaml")
-    
-if config["single_paired_end"] not in ['single', 'paired']:
+
+if config["single_paired_end"] not in ["single", "paired"]:
     print("config['single_paired_end'] must be 'single' or 'paired'!")
     sys.exit()
-    
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]):
-    os.makedirs(config["analysis_name"]+os.sep+config["single_paired_folder"])    
-    
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"1_fastqfile_home_dir.txt"):  
-    if config["single_paired_end"] == 'paired':
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"1_fastqfile_home_dir.txt", 'w') as nfile:
-            for f in pd.read_csv("1_fastqfile_home_dir.txt", header=None)[0].tolist():
-                nfile.write(f+"_R1.fastq.gz\n")
-                nfile.write(f+"_R2.fastq.gz\n")
-        if config["concatenate_fastq"] == "True":
-            with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"2_fastqfile_concat.txt", 'w') as nfile:
-                for f in pd.read_csv("2_fastqfile_concat.txt", header=None)[0].tolist():
-                    nfile.write(f+"_R1.fastq.gz\n")
-                    nfile.write(f+"_R2.fastq.gz\n")
-    else:
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"1_fastqfile_home_dir.txt", 'w') as nfile:
-            for f in pd.read_csv("1_fastqfile_home_dir.txt", header=None)[0].tolist():
-                nfile.write(f+".fastq.gz\n")
-        if config["concatenate_fastq"] == "True":
-            with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"2_fastqfile_concat.txt", 'w') as nfile:
-                for f in pd.read_csv("2_fastqfile_concat.txt", header=None)[0].tolist():
-                    nfile.write(f+".fastq.gz\n")
+
+workflow_inputs = prepare_workflow_inputs(config, workflow_dir=".")
+origin_fastq = workflow_inputs["origin_fastq"]
+origin_fastq_concat = workflow_inputs["origin_fastq_concat"]
+samples_r = workflow_inputs["samples_r"]
+merge_sample = workflow_inputs["merge_sample"]
+concat_map = workflow_inputs["concat_map"]
+merge_map = workflow_inputs["merge_map"]
+
+genomeV = config["genome_built_version"]
 
 
-if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv"):  
-    if config["single_paired_end"] == 'paired':
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", 'w') as nfile:
-            nfile.write("sample\tr1\tr2\n")
-            if config["concatenate_fastq"] == "False":
-                for f in pd.read_csv("1_fastqfile_home_dir.txt", header=None)[0].tolist():
-                    nfile.write("%s\t%s_R1.fastq.gz\t%s_R2.fastq.gz\n"%(f, f, f))
-            else:
-                for f in pd.read_csv("2_fastqfile_concat.txt", header=None)[0].tolist():
-                    nfile.write("%s\t%s_R1.fastq.gz\t%s_R2.fastq.gz\n"%(f, f, f))
-    else:
-        with open(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", 'w') as nfile:
-            nfile.write("sample\tr\n")
-            if config["concatenate_fastq"] == "False":
-                for f in pd.read_csv("1_fastqfile_home_dir.txt", header=None)[0].tolist():
-                    nfile.write("%s\t%s.fastq.gz\n"%(f, f))
-            else:
-                for f in pd.read_csv("2_fastqfile_concat.txt", header=None)[0].tolist():
-                    nfile.write("%s\t%s.fastq.gz\n"%(f, f))
-
-if config['merge_bams']=='True':
-    if not os.path.exists(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"3_merge_bams.txt"):
-        shutil.copy("3_merge_bams.txt", config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep)
-
-origin_fastq_raw = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"1_fastqfile_home_dir.txt", header=None)[0]
-origin_fastq     = [of.split(".fastq.gz")[0] for of in list(origin_fastq_raw)]
-
-if config["concatenate_fastq"] == "True":
-    origin_fastq_raw_concat = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"2_fastqfile_concat.txt", header=None)[0]
-    origin_fastq_concat = [of.split(".fastq.gz")[0] for of in list(origin_fastq_raw_concat)]
+def build_track_base_url(config):
+    parts = [config["bigDataUrl"].rstrip("/")]
+    for key in ["public_output_dir", "tag_public_output_dir"]:
+        value = str(config.get(key, "")).strip().strip("/")
+        if value:
+            parts.append(value)
+    return "/".join(parts)
 
 
+track_base_url = build_track_base_url(config)
+
+analysis_samples = list(samples_r.index)
+raw_read_samples = list(origin_fastq)
+merge_samples = list(merge_sample)
 
 
+def peak_log_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["peaks_log"], f"{sample}_{genomeV}.txt")
+        for sample in merge_samples
+    ]
 
-samples_r = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", index_col="sample", sep="\t")
-if config['merge_bams']=='True':
-    try:
-        merge_sample = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"3_merge_bams.txt", header=None)[0].tolist()
-    except:
-        print("You must provide '3_merge_bams.txt' file")
-        sys.exit()
-else:
-    merge_sample = list(samples_r.index)
 
-genomeV = config['genome_built_version']
+def read_qc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["reads_qc"], f"{sample}.html")
+        for sample in raw_read_samples
+    ]
+
+
+def trimming_qc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["trimming_qc"], f"{sample}_fastqc.txt")
+        for sample in raw_read_samples
+    ]
+
+
+def aligner_multiqc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["aligner_qc"], f"{sample}_{genomeV}_multiqc.html")
+        for sample in analysis_samples
+    ]
+
+
+def duplicates_multiqc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["duplicates_qc"], f"{sample}_{genomeV}_multiqc.html")
+        for sample in analysis_samples
+    ]
+
+
+def merge_multiqc_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["merge_qc"], f"{sample}_{genomeV}_multiqc.html")
+        for sample in merge_samples
+    ]
+
+
+def bam_coverage_targets():
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["bam_coverage"], f"{sample}_{genomeV}.bw")
+        for sample in merge_samples
+    ]
+
 
 include: "rules/01_upstream.smk"
 include: "rules/02_qc.smk"
 include: "rules/03_trackDb.smk"
 include: "rules/04_folders.smk"
 
-if config['cutadapters_bool'] == "False":
+if not config["cutadapters_bool"]:
 
     rule all:
         input:
-            expand(os.path.join(config["analysis_name"]+os.sep+config["peaks_log"], "{sample_merged}_%s.txt"%genomeV), sample_or=list(origin_fastq),
-                                                                                                                       sample=list(samples_r.index),
-                                                                                                                       sample_merged=merge_sample),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["reads_qc"], "{sample_or}.html"), sample_or=list(origin_fastq)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["aligner_qc"], "{sample}_%s_multiqc.html"%genomeV), sample=list(samples_r.index)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["duplicates_qc"], "{sample}_%s_multiqc.html"%genomeV), sample=list(samples_r.index)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["merge_qc"], "{sample_merged}_%s_multiqc.html"%genomeV), sample_merged=merge_sample),
-            os.path.join(config["analysis_name"]+os.sep+config["track"], "trackDb.txt"),
-            os.path.join(config["analysis_name"]+os.sep+config["cleaning"], "moving.txt")
-
+            peak_log_targets(),
+            read_qc_targets(),
+            aligner_multiqc_targets(),
+            duplicates_multiqc_targets(),
+            merge_multiqc_targets(),
+            os.path.join(config["analysis_name"] + os.sep + config["track"], "trackDb.txt"),
+            os.path.join(config["analysis_name"] + os.sep + config["cleaning"], "moving.txt")
 else:
-    
+
     rule all:
         input:
-            expand(os.path.join(config["analysis_name"]+os.sep+config["peaks_log"], "{sample_merged}_%s.txt"%genomeV), sample_or=list(origin_fastq),
-                                                                                                                       sample=list(samples_r.index),
-                                                                                                                       sample_merged=merge_sample),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["reads_qc"], "{sample_or}.html"), sample_or=list(origin_fastq)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample_or}_fastqc.txt"), sample=list(samples_r.index), sample_or=list(origin_fastq)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["aligner_qc"], "{sample}_%s_multiqc.html"%genomeV), sample=list(samples_r.index)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["duplicates_qc"], "{sample}_%s_multiqc.html"%genomeV), sample=list(samples_r.index)),
-            expand(os.path.join(config["analysis_name"]+os.sep+config["merge_qc"], "{sample_merged}_%s_multiqc.html"%genomeV), sample_merged=merge_sample),
-
-            os.path.join(config["analysis_name"]+os.sep+config["track"], "trackDb.txt"),
-            os.path.join(config["analysis_name"]+os.sep+config["cleaning"], "moving.txt")
-
+            peak_log_targets(),
+            read_qc_targets(),
+            trimming_qc_targets(),
+            aligner_multiqc_targets(),
+            duplicates_multiqc_targets(),
+            merge_multiqc_targets(),
+            os.path.join(config["analysis_name"] + os.sep + config["track"], "trackDb.txt"),
+            os.path.join(config["analysis_name"] + os.sep + config["cleaning"], "moving.txt")

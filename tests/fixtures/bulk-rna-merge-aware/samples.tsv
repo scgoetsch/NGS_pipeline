@@ -1,0 +1,3 @@
+fastq_prefix	sample_name	merge_group
+rna1_lane1	rna1	rna1_merged
+rna1_lane2	rna1	rna1_merged

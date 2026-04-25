@@ -1,0 +1,72 @@
+name: pixi
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  catch-up-dryrun:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install default environment
+        run: pixi install
+
+      - name: Validate bundled CATCH-UP example
+        run: pixi run catch-up-example-dryrun
+
+      - name: Dry-run CATCH-UP merge-aware fixture
+        run: |
+          rm -rf genetics/CATCH-UP/.tmp-ci
+          pixi run bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=../../tests/fixtures/catch-up-merge-aware/config.yaml -n all --cores 1'
+
+  reference-genomes-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install reference-genomes environment
+        run: pixi install -e reference-genomes
+
+  chip-calibrated-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install chip-calibrated environment
+        run: pixi install -e chip-calibrated
+
+      - name: Dry-run calibrated ChIP synthetic fixture
+        run: |
+          rm -rf genetics/ChIP-Seq-Calibrated/.tmp-ci
+          pixi run -e chip-calibrated bash -lc 'cd genetics/ChIP-Seq-Calibrated && snakemake --configfile=../../tests/fixtures/chip-calibrated-basic/config.yaml -n all --cores 1'
+
+  bulk-rna-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install bulk-rna environment
+        run: pixi install -e bulk-rna
+
+      - name: Dry-run bulk RNA synthetic fixture
+        run: |
+          rm -rf transcriptomics/Bulk-RNA-seq/.tmp-ci
+          pixi run -e bulk-rna bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=../../tests/fixtures/bulk-rna-merge-aware/config.yaml -n all --cores 1'

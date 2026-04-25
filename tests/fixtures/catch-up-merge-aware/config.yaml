@@ -1,0 +1,61 @@
+analysis_name: ".tmp-ci/analysis"
+fastq_home_dir: "../../tests/fixtures/catch-up-merge-aware/fastqs"
+sample_sheet: "../../tests/fixtures/catch-up-merge-aware/samples.tsv"
+single_paired_end: "single"
+concatenate_fastq: true
+cutadapters_bool: false
+aligner_algorithm: "bowtie2"
+aligner_dir: "/tmp/fake-bowtie2-index"
+genome_built_version: "hg38"
+merge_bams: true
+peak_caller: "lanceotron"
+bigDataUrl: "https://example.org/"
+move_output_files: false
+output_dir: ""
+tag_output_dir: ""
+move_bw_public_folder: false
+public_output_dir: ""
+tag_public_output_dir: ""
+trimming_SE_extra: "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20"
+trimming_PE_extra: "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20"
+aligner_extra: ""
+filtering_extra: "-bShuF 4 -f 3 -q 30"
+samtools_sort_extra: "-m 1G"
+mark_duplicates_extra: "--REMOVE_DUPLICATES False"
+samtools_index_extra: ""
+bam_coverage_params1: "-bs 1 --normalizeUsing RPKM"
+bam_coverage_params2: "--extendReads"
+macs2_extra1: "--format AUTO -g hs -q 0.05"
+macs2_extra2: "-B --call-summits"
+delete_intermediate_files: false
+single_paired_folder_rm: false
+reads_rm: false
+trimming_rm: false
+aligner_rm: false
+filtering_rm: false
+sorted_rm: false
+duplicates_rm: false
+merge_rm: false
+bam_coverage_rm: false
+peaks_rm: false
+track_rm: false
+single_paired_folder: "results/00_fastq_home_dir"
+reads: "results/01_reads/01_original"
+reads_qc: "QCs/01_reads/01_original"
+reads_concat: "results/01_reads/02_concatenate"
+reads_concat_qc: "QCs/01_reads/02_concatenate"
+trimming: "results/02_trimming"
+trimming_qc: "QCs/02_trimming"
+aligner: "results/03_aligner"
+aligner_qc: "QCs/03_aligner"
+filtering: "results/04_filtering"
+sorted: "results/05_sorted"
+duplicates: "results/06_duplicates"
+duplicates_qc: "QCs/06_duplicates"
+merge: "results/07_merge"
+merge_qc: "QCs/07_merge"
+bam_coverage: "results/08_bam_coverages"
+peaks: "results/09_peak_calling"
+peaks_log: "logs/09_peak_calling/"
+track: "results/10_track"
+cleaning: "results/"

@@ -1,28 +1,34 @@
-origin_fastq_raw=pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"1_fastqfile_home_dir.txt", header=None)[0]
-origin_fastq    =[of.split(".fastq.gz")[0] for of in list(origin_fastq_raw)]
-
-if config["concatenate_fastq"] == "True":
-    origin_fastq_raw_concat = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"2_fastqfile_concat.txt", header=None)[0]
-    origin_fastq_concat = [of.split(".fastq.gz")[0] for of in list(origin_fastq_raw_concat)]
+if config["concatenate_fastq"]:
     read_folder = config["reads_concat"]
 else:
     read_folder = config["reads"]
-    origin_fastq_conact = origin_fastq
 
 ext_aligner=["_R1.fastq.gz", "_R2.fastq.gz"]
-    
-samples_r = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"samples.csv", index_col="sample", sep="\t")
 
-genomeV = config['genome_built_version']
 
-if config['merge_bams']=='True':
-    try:
-        merge_sample = pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"3_merge_bams.txt", header=None)[0].tolist()
-    except:
-        print("You must provide 'merge.txt' file")
-        sys.exit()
-    
-    
+def concat_inputs_for_sample(wildcards):
+    prefixes = concat_map[wildcards.sample]
+    if config["single_paired_end"] == "paired":
+        inputs = []
+        for prefix in prefixes:
+            inputs.extend([
+                os.path.join(config["analysis_name"] + os.sep + config["reads"], f"{prefix}_R1.fastq.gz"),
+                os.path.join(config["analysis_name"] + os.sep + config["reads"], f"{prefix}_R2.fastq.gz"),
+            ])
+        return inputs
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["reads"], f"{prefix}.fastq.gz")
+        for prefix in prefixes
+    ]
+
+
+def merge_inputs_for_sample(wildcards):
+    return [
+        os.path.join(config["analysis_name"] + os.sep + config["duplicates"], f"{sample}_{genomeV}.bam")
+        for sample in merge_map[wildcards.sample_merged]
+    ]
+
+
 rule move_fastq:
     input:
         r1=os.path.join(config["fastq_home_dir"], "{sample_or}.fastq.gz"),
@@ -41,7 +47,7 @@ rule move_fastq:
 
 rule concatenating:
     input:
-        expand(os.path.join(config["analysis_name"]+os.sep+config["reads"], "{samp}.fastq.gz"), samp=list(origin_fastq)),
+        concat_inputs_for_sample,
     output:
         f=os.path.join(config["analysis_name"]+os.sep+config["reads_concat"], "{sample}.txt"),
     params:
@@ -52,30 +58,22 @@ rule concatenating:
     log:
         os.path.join(config["analysis_name"], "logs/01_move_fastq/{sample}_concat.txt"),
     run:
-        if params.concat == "True":
-            import glob, subprocess
-            if params.end == 'paired':
-                
-                infastq1 = sorted(glob.glob(params.folderin+os.sep+wildcards.sample+"*"+"_R1.fastq.gz"))
-                infastq2 = sorted(glob.glob(params.folderin+os.sep+wildcards.sample+"*"+"_R2.fastq.gz"))
+        if params.concat:
+            import subprocess
 
+            if params.end == 'paired':
+                infastq1 = [path for path in input if path.endswith("_R1.fastq.gz")]
+                infastq2 = [path for path in input if path.endswith("_R2.fastq.gz")]
                 outfasq1 = params.folderout+os.sep+wildcards.sample+"_R1.fastq.gz"
                 outfasq2 = params.folderout+os.sep+wildcards.sample+"_R2.fastq.gz"
 
-                command = ['cat %s > %s'%(" ".join(infastq1), outfasq1)]
-                subprocess.run(command, shell=True)
-                
-                command = ['cat %s > %s'%(" ".join(infastq2), outfasq2)]
-                subprocess.run(command, shell=True)
-            
+                subprocess.run(f"cat {' '.join(infastq1)} > {outfasq1}", shell=True, check=True)
+                subprocess.run(f"cat {' '.join(infastq2)} > {outfasq2}", shell=True, check=True)
             else:
-                
-                infastq = glob.glob(params.folderin+os.sep+wildcards.sample+"*"+".fastq.gz")
+                infastq = list(input)
                 outfasq = params.folderout+os.sep+wildcards.sample+".fastq.gz"
+                subprocess.run(f"cat {' '.join(infastq)} > {outfasq}", shell=True, check=True)
 
-                command = ['cat %s > %s'%(" ".join(infastq), outfasq)]
-                subprocess.run(command, shell=True)
-            
             with open(output.f, 'w') as nfile:
                 nfile.write("Concatenation Done!")
         else:
@@ -235,7 +233,7 @@ rule mark_duplicates:
 
 rule merge_bam:
     input:
-        bam=expand(config["analysis_name"]+os.sep+os.path.join(config["duplicates"], "{samples}_%s.bam"%genomeV), samples=list(samples_r.index)),
+        bam=merge_inputs_for_sample,
     output:
         os.path.join(config["analysis_name"]+os.sep+config["merge"], "{sample_merged}_%s.bam"%genomeV),
     params:
@@ -251,10 +249,10 @@ rule merge_bam:
             mkdir -p {params.folder_merge_bams}
             if [ "{params.merge_bams}" == "True" ]
             then
-                samtools merge {output} {params.folder_duplicates}/{wildcards.sample_merged}*
+                samtools merge {output} {input.bam}
             else
                 echo These bam files have not been merged \(as stated in the config file\)!!! >> {params.info_merge_file}
-                cp {params.folder_duplicates}/{wildcards.sample_merged}* {output}
+                cp {input.bam} {output}
             fi
         """      
                 

@@ -5,14 +5,18 @@
 ### analysis_name: your analysis must have a unique name. This name will be both the name of your configuration file, and the name of the folder with all analysis
 analysis_name: "analysis"
 
-### fastq_home_dir: specify the directory containing the original fastq files, concatenate lanes
+### fastq_home_dir: specify the directory containing the original fastq files
 fastq_home_dir: "<path-to-fastq-files-directory>"
+
+### sample_sheet: optional TSV/CSV manifest with columns: chip_fastq_prefix, input_fastq_prefix
+### Leave empty to use the legacy fastqfile_home_dir.txt file.
+sample_sheet: ""
 
 ### single_paired_end: specify if reads are single or paired end ('single' or 'paired')
 single_paired_end: "paired"
 
-### cutadapters_bool: specify if you want to trim the reads ('True' or 'False')
-cutadapters_bool: "False"
+### cutadapters_bool: specify if you want to trim the reads with Trimmomatic (true or false)
+cutadapters_bool: false
 
 ### bowtie2_dir: specify directory where custom genome is located
 bowtie2_dir: "/<path>/Bowtie2_mm39.hg38/mm39.hg38"
@@ -21,8 +25,8 @@ genome:      "mm39"
 ### spikein: specify spikein version used to build the custom genome
 spikein:     "hg38"
 
-### input_provided: specify if input is provided for each sample
-input_provided: "True"
+### input_provided: specify if input is provided for each sample (true or false)
+input_provided: true
 
 ### bigDataUrl: specify the location for public bigWigs and this is the link you can copy and paste into UCSC
 ### NB: url must end with a slash ("/")
@@ -34,8 +38,8 @@ bigDataUrl: "https:///<path>/"
 ########################################## Copy/Move folders (Optional) ###########################################
 ###################################################################################################################
 
-### move_output_files: specify if you want to output files ('True' or 'False')
-move_output_files: "False"
+### move_output_files: specify if you want to move final files out of the analysis directory (true or false)
+move_output_files: false
 ### Specify the directory where final files must be moved.
 output_dir:        "<path-to-output-directory>"
 ### Specify tag output directory.
@@ -43,9 +47,9 @@ tag_output_dir:    "<tag-output-directory>"
 
 ###################################################################################################################
 
-### move_bw_public_folder: specify if you want to move the output files in a public folder ('True' or 'False'). 
-### This is required for visulaisation on the UCSC genome browser
-move_bw_public_folder: "False"
+### move_bw_public_folder: specify if you want to move the output files in a public folder (true or false).
+### This is required for visualisation on the UCSC genome browser
+move_bw_public_folder: false
 ### Specify public directory where bw files must be copied.
 public_output_dir:     "<path-to-output-directory>"
 ### Specify tag public output directory.
@@ -57,7 +61,7 @@ tag_public_output_dir: "<tag-output-directory>"
 ######################################### Optional rule params (Optional) #########################################
 ###################################################################################################################
 
-### Option to modify cutadapt parameters (see trimmomatic user manual)
+### Option to modify Trimmomatic parameters (see the Trimmomatic user manual)
 trimming_SE_extra:          "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'single'
 trimming_PE_extra:          "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'paired'
 
@@ -86,23 +90,23 @@ bam_coverage_params2:        "--extendReads"
 ############################################ Clean folders (Optional) #############################################
 ###################################################################################################################
 
-### delete_intermediate_files: specify if you want to delete intermediate files ('True' or 'False')
-delete_intermediate_files: "False"
+### delete_intermediate_files: specify if you want to delete intermediate files (true or false)
+delete_intermediate_files: false
 
-### Specify what output must be removed before moving output files ('False' = keep, 'True' = remove)
-single_paired_folder_rm: "False"
-reads_rm:                "False"
-trimming_rm:             "False"
-bowtie2_rm:              "False"
-sorted_rm:               "False"
-duplicates_rm:           "False"
-splitgenome_rm:          "False"
-readcounts_rm:           "False"
-downsampling_factor_rm:  "False"
-downsampling_rm:         "False"
-bam_coverage_rm:         "False"
-peaks_rm:                "False"
-track_rm:                "False"
+### Specify what output must be removed before moving output files (false = keep, true = remove)
+single_paired_folder_rm: false
+reads_rm:                false
+trimming_rm:             false
+bowtie2_rm:              false
+sorted_rm:               false
+duplicates_rm:           false
+splitgenome_rm:          false
+readcounts_rm:           false
+downsampling_factor_rm:  false
+downsampling_rm:         false
+bam_coverage_rm:         false
+peaks_rm:                false
+track_rm:                false
 
 
 

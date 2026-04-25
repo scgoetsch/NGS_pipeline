@@ -53,29 +53,39 @@ ii. Then need to build bowtie2 index [See detailed instructions on Homer webpage
 ```bowtie2-build /path/catenated_mm39_dm6.fa mm39.dm6```
 
 
-#### 3. paths_to_fastqs.txt 
+#### 3. Sample metadata
 
-Needs to tab separated and without headers:   
-COLUMN_1: sampleName _This is the name you want to call this sample_   
-COLUMN_2: ChIP_sample _This is the ChIP sample without suffix (i.e., *R1.fastq.gz)_   
+This pipeline now supports two input metadata formats:
 
-If providing input samples, also include a third column:   
-COLUMN_3: input_sample _This is the input control sample that corresponds to the ChIP sample without suffix (i.e., *R1.fastq.gz)_
+1. **Modern sample sheet** via `sample_sheet` in `config/analysis.yaml`
+2. **Legacy** `fastqfile_home_dir.txt`
 
-For example, if you have 2 samples with corresponding inputs:  
+The recommended modern sample sheet is TSV or CSV with the following columns:
+
+- `chip_fastq_prefix` (required)
+- `input_fastq_prefix` (required when `input_provided: true`)
+
+Recommended examples:
+- bundled example sample sheet: [`config/example.samples.tsv`](./config/example.samples.tsv)
+- reusable dry-run fixture: [`../../tests/fixtures/chip-calibrated-basic/`](../../tests/fixtures/chip-calibrated-basic)
+
+Example (`config/example.samples.tsv`):
+
+```tsv
+chip_fastq_prefix	input_fastq_prefix
+H3K4me3_ChIP_HeLa_sample1	H3K4me3_input_HeLa_sample1
+H3K4me3_ChIP_HeLa_sample2	H3K4me3_input_HeLa_sample2
 ```
-Sample 1: H3K4me3_ChIP_HeLa_sample1.R1.fastq.gz, H3K4me3_ChIP_HeLa_sample1.R2.fastq.gz, H3K4me3_input_HeLa_sample1.R1.fastq.gz, H3K4me3_input_HeLa_sample1.R2.fastq.gz
-Sample 2: H3K4me3_ChIP_HeLa_sample2.R1.fastq.gz H3K4me3_ChIP_HeLa_sample2.R2.fastq.gz, H3K4me3_input_HeLa_sample2.R1.fastq.gz, H3K4me3_input_HeLa_sample2.R2.fastq.gz
-```
-paths_to_fastqs.txt should be as follows (this will be the same for both single- and paired-end reads)
-```
-H3K4me3_HeLa_sample1    H3K4me3_ChIP_HeLa_sample1    H3K4me3_input_HeLa_sample1
-H3K4me3_HeLa_sample2    H3K4me3_ChIP_HeLa_sample2    H3K4me3_input_HeLa_sample2
-```
+
+Legacy mode still works via `fastqfile_home_dir.txt`, which should be tab-separated without headers:
+
+- column 1: ChIP FASTQ prefix
+- column 2: input FASTQ prefix (only when `input_provided: true`)
 
 #### 4. Modify the config.yaml file
 
-Detailed instructions are provided in the config.yaml file for editing the necessary parameters.   
+Detailed instructions are provided in the config.yaml file for editing the necessary parameters.
+Boolean values may now be written as YAML booleans (`true` / `false`) or legacy strings (`"True"` / `"False"`).
 
 A few key points:   
 - Include the full path to the catenated genome bowtie2 build.
@@ -91,14 +101,25 @@ This pipeline will run all the analyses in the ChIP-Seq snakemake folder, within
 When running the pipeline, results, QCs, and logs folders will be automatically generated with all related outputs inside the output folder specified in the config.yaml file.
 
 ***
-### How to run the Calibrated ChIP pipeline
-Option #1: run locally
-Run snakemake selecting number of cores (for parallelisation purpose) 
+### How to run the calibrated ChIP pipeline
+Option #1: run locally with Pixi from the repository root
+```bash
+pixi install -e chip-calibrated
+PIXI_CORES=4 pixi run -e chip-calibrated chip-calibrated
 ```
+
+Option #1a: reusable fixture dry-run from the repository root
+```bash
+pixi run -e chip-calibrated bash -lc 'cd genetics/ChIP-Seq-Calibrated && snakemake --configfile=../../tests/fixtures/chip-calibrated-basic/config.yaml -n all --cores 1'
+```
+
+Option #2: run locally with Snakemake
+```bash
 snakemake --configfile=config/analysis.yaml all --cores 4
 ```
-OPT2: SLURM   
-Modify parameters of submit.sh, then submit the job as follows 
-```
-sbatch submit.sh
+
+Option #3: SLURM
+Modify parameters of `submit.sh` (conda-based) or `submit.pixi.sh` (Pixi-based), then submit:
+```bash
+sbatch submit.pixi.sh
 ```

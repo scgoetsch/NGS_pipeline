@@ -5,17 +5,21 @@
 ### analysis_name: your analysis must have a unique name. This name will be both the name of your configuration file, and the name of the folder with all analysis
 analysis_name: "analysis"
 
-### fastq_home_dir: specify the directory containing the original fastq files, concatenate lanes
+### fastq_home_dir: specify the directory containing the original fastq files
 fastq_home_dir: "<path-to-fastq-files-directory>"
+
+### sample_sheet: optional TSV/CSV manifest with columns: fastq_prefix, concat_sample, merge_sample
+### Leave empty to use the legacy text files in the workflow directory.
+sample_sheet: ""
 
 ### single_paired_end: specify if reads are single or paired end ('single' or 'paired')
 single_paired_end: "paired"
 
-### concatenate_fastq: specify if you want to concatenate the reads ('True' or 'False')
-concatenate_fastq: "False"
+### concatenate_fastq: specify if you want to concatenate the reads (true or false)
+concatenate_fastq: false
 
-### cutadapters_bool: specify if you want to trim the reads ('True' or 'False')
-cutadapters_bool: "False"
+### cutadapters_bool: specify if you want to trim the reads with Trimmomatic (true or false)
+cutadapters_bool: false
 
 ### star_dir: specify directory where genome is located
 star_dir: "/<path>/STAR"
@@ -26,8 +30,8 @@ gtf_annotation: "/<path>/refGene.gtf"
 ### genome_built_version: version of the built genome. It must be consistent with the aligner_dir chosen
 genome_built_version: "mm39"
 
-### merge_bams: specify if you want to merge the bam files (i.e., if you have many lanes) ('True' or 'False')
-merge_bams: "False"
+### merge_bams: specify if you want to merge the bam files (i.e. if you have many lanes) (true or false)
+merge_bams: false
 
 ### bigDataUrl: specify the location for public bigWigs and this is the link you can copy and paste into UCSC
 ### NB: url must end with a slash ("/")
@@ -39,8 +43,8 @@ bigDataUrl: "https://<path>/"
 ########################################## Copy/Move folders (Optional) ###########################################
 ###################################################################################################################
 
-### move_output_files: specify if you want to move the output files ('True' or 'False')
-move_output_files: "False"
+### move_output_files: specify if you want to move the output files (true or false)
+move_output_files: false
 ### Specify the directory where final files must be moved.
 output_dir:        "<path-to-output-directory>"
 ### Specify tag output directory.
@@ -48,9 +52,9 @@ tag_output_dir:    "<tag-output-directory>"
 
 ###################################################################################################################
 
-### move_bw_public_folder: specify if you want to move the output files in a public folder ('True' or 'False'). 
-### This is required for visulaisation on the UCSC genome browser
-move_bw_public_folder: "False"
+### move_bw_public_folder: specify if you want to move the output files in a public folder (true or false).
+### This is required for visualisation on the UCSC genome browser
+move_bw_public_folder: false
 ### Specify public directory where bw files must be copied.
 public_output_dir:     "<path-to-output-directory>"
 ### Specify tag public output directory.
@@ -61,7 +65,7 @@ tag_public_output_dir: "<tag-output-directory>"
 ######################################### Optional rule params (Optional) #########################################
 ###################################################################################################################
 
-### Option to modify cutadapt parameters (see trimmomatic user manual)
+### Option to modify Trimmomatic parameters (see the Trimmomatic user manual)
 trimming_SE_extra:          "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'single'
 trimming_PE_extra:          "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'paired'
 
@@ -84,21 +88,21 @@ bam_coverage_params2:        "--extendReads"
 ############################################ Clean folders (Optional) #############################################
 ###################################################################################################################
 
-### delete_intermediate_files: specify if you want to delete intermediate files ('True' or 'False')
-delete_intermediate_files: "False"
+### delete_intermediate_files: specify if you want to delete intermediate files (true or false)
+delete_intermediate_files: false
 
-### Specify what output must be removed before moving output files ('False' = keep, 'True' = remove)
-single_paired_folder_rm: "False"
-reads_rm:                "True"
-trimming_rm:             "True"
-star_rm:                 "True"
-sorted_rm:               "True"
-merge_rm:                "True"
-duplicates_rm:           "True"
-indices_rm:              "False"
-bam_coverage_rm:         "False"
-feature_counts_rm:       "False"
-track_rm:                "False"
+### Specify what output must be removed before moving output files (false = keep, true = remove)
+single_paired_folder_rm: false
+reads_rm:                true
+trimming_rm:             true
+star_rm:                 true
+sorted_rm:               true
+merge_rm:                true
+duplicates_rm:           true
+indices_rm:              false
+bam_coverage_rm:         false
+feature_counts_rm:       false
+track_rm:                false
 
 
 

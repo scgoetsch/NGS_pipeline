@@ -1,14 +1,8 @@
 from datetime import datetime
 
-samples_r=pd.read_csv(config["analysis_name"]+os.sep+config["single_paired_folder"]+os.sep+"fastqfile_home_dir.txt", header=None)[0]
-if config["single_paired_end"]=="paired":
-    samples_r = [re.sub("_R\d+.fastq.gz", "", sr) for sr in list(samples_r)]
-else:
-    samples_r = [re.sub(".fastq.gz", "", sr) for sr in list(samples_r)]
-    
 rule cleaning_folders:
     input:
-        expand(os.path.join(config["analysis_name"]+os.sep+config["peaks_log"], "{sample}_downsampled.txt"), sample=list(samples_r)),
+        peak_log_targets(),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["cleaning"], "moving.txt"),
     params:
