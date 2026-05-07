@@ -17,13 +17,13 @@ jobs:
       - name: Install default environment
         run: pixi install
 
-      - name: Validate bundled CATCH-UP example
-        run: pixi run catch-up-example-dryrun
+      - name: Check CATCH-UP runtime tools
+        run: pixi run bash -lc 'command -v bowtie2 bwa-mem2 samtools picard bamCoverage macs2 lanceotron fastqc multiqc trimmomatic'
 
       - name: Dry-run CATCH-UP merge-aware fixture
         run: |
           rm -rf genetics/CATCH-UP/.tmp-ci
-          pixi run bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=../../tests/fixtures/catch-up-merge-aware/config.yaml -n all --cores 1'
+          pixi run catch-up-fixture-dryrun
 
   reference-genomes-env:
     runs-on: ubuntu-latest
@@ -49,6 +49,9 @@ jobs:
       - name: Install chip-calibrated environment
         run: pixi install -e chip-calibrated
 
+      - name: Check calibrated ChIP runtime tools
+        run: pixi run -e chip-calibrated bash -lc 'command -v bowtie2 samtools picard bamCoverage sambamba lanceotron fastqc multiqc trimmomatic'
+
       - name: Dry-run calibrated ChIP synthetic fixture
         run: |
           rm -rf genetics/ChIP-Seq-Calibrated/.tmp-ci
@@ -65,6 +68,9 @@ jobs:
 
       - name: Install bulk-rna environment
         run: pixi install -e bulk-rna
+
+      - name: Check bulk RNA runtime tools
+        run: pixi run -e bulk-rna bash -lc 'command -v STAR featureCounts samtools picard bamCoverage fastqc multiqc trimmomatic'
 
       - name: Dry-run bulk RNA synthetic fixture
         run: |

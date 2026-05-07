@@ -29,8 +29,27 @@ merge_map = workflow_inputs["merge_map"]
 genomeV = config["genome_built_version"]
 
 
+def _is_placeholder_path(value):
+    value = str(value or "").strip()
+    return "<" in value or ">" in value
+
+
 def build_track_base_url(config):
-    parts = [config["bigDataUrl"].rstrip("/")]
+    """Return the base URL used in generated UCSC trackDb entries.
+
+    If bigWigs are not explicitly copied to a public folder, point trackDb at
+    the real local bigWig directory. Avoid propagating template placeholder
+    paths such as <path-to-output-directory> into runnable analyses.
+    """
+    if (
+        not config.get("move_bw_public_folder")
+        or _is_placeholder_path(config.get("public_output_dir"))
+        or _is_placeholder_path(config.get("tag_public_output_dir"))
+    ):
+        coverage_dir = os.path.abspath(config["analysis_name"] + os.sep + config["bam_coverage"])
+        return "file://" + coverage_dir
+
+    parts = [str(config["bigDataUrl"]).rstrip("/")]
     for key in ["public_output_dir", "tag_public_output_dir"]:
         value = str(config.get(key, "")).strip().strip("/")
         if value:

@@ -59,73 +59,73 @@ rule cleaning_folders:
         
     shell:
         """
-            if [ {params.move_bw_public_folder} == "True" ]
+            if [ "{params.move_bw_public_folder}" == "True" ]
             then
-                mkdir -p {params.public_output_dir}/{params.tag_public_output_dir}
-                cp {params.bam_coverage}/* {params.public_output_dir}/{params.tag_public_output_dir}/
+                mkdir -p "{params.public_output_dir}/{params.tag_public_output_dir}"
+                cp "{params.bam_coverage}"/* "{params.public_output_dir}/{params.tag_public_output_dir}/"
             fi
         
-            if [ {params.delete_intermediate_files} == "True" ]
+            if [ "{params.delete_intermediate_files}" == "True" ]
             then
                 echo Cleaning in progress...
 
-                if [ {params.single_paired_folder_rm} == "True"  ]
+                if [ "{params.single_paired_folder_rm}" == "True"  ]
                 then
-                    rm -rf {params.single_paired_folder}
+                    rm -rf "{params.single_paired_folder}"
                 fi
-                if [ {params.reads_rm} == "True"  ]
+                if [ "{params.reads_rm}" == "True"  ]
                 then
-                    rm -rf {params.reads}
+                    rm -rf "{params.reads}"
                 fi
-                if [ {params.trimming_rm} == "True"  ]
+                if [ "{params.trimming_rm}" == "True"  ]
                 then
-                    rm -rf {params.trimming}
+                    rm -rf "{params.trimming}"
                 fi
-                if [ {params.star_rm} == "True"  ]
+                if [ "{params.star_rm}" == "True"  ]
                 then
-                    rm -rf {params.star}
+                    rm -rf "{params.star}"
                 fi
-                if [ {params.sorted_rm} == "True"  ]
+                if [ "{params.sorted_rm}" == "True"  ]
                 then
-                    rm -rf {params.sorted}
+                    rm -rf "{params.sorted}"
                 fi
-                if [ {params.merge_rm} == "True"  ]
+                if [ "{params.merge_rm}" == "True"  ]
                 then
-                    rm -rf {params.merge}
+                    rm -rf "{params.merge}"
                 fi
-                if [ {params.duplicates_rm} == "True"  ]
+                if [ "{params.duplicates_rm}" == "True"  ]
                 then
-                    rm -rf {params.duplicates}
+                    rm -rf "{params.duplicates}"
                 fi 
-                if [ {params.indices_rm} == "True"  ]
+                if [ "{params.indices_rm}" == "True"  ]
                 then
-                    rm -rf {params.indices}
+                    rm -rf "{params.indices}"
                 fi
-                if [ {params.bam_coverage_rm} == "True"  ]
+                if [ "{params.bam_coverage_rm}" == "True"  ]
                 then
-                    rm -rf {params.bam_coverage}
+                    rm -rf "{params.bam_coverage}"
                 fi
-                if [ {params.feature_counts_rm} == "True"  ]
+                if [ "{params.feature_counts_rm}" == "True"  ]
                 then
-                    rm -rf {params.feature_counts}
+                    rm -rf "{params.feature_counts}"
                 fi
-                if [ {params.track_rm} == "True"  ]
+                if [ "{params.track_rm}" == "True"  ]
                 then
-                    rm -rf {params.track}
+                    rm -rf "{params.track}"
                 fi
             fi
                        
-            if [ {params.move_output_files} == "True" ]
+            if [ "{params.move_output_files}" == "True" ]
             then
-                mkdir -p {params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}
-                mv {params.config_name}/results {params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/
-                mv {params.config_name}/QCs {params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/
-                mv {params.config_name}/logs {params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/
-                cp config/{params.config_name}.yaml {params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/
-                mkdir -p {params.config_name}/results
+                mkdir -p "{params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}"
+                mv "{params.config_name}/results" "{params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/"
+                mv "{params.config_name}/QCs" "{params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/"
+                mv "{params.config_name}/logs" "{params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/"
+                cp "config/{params.config_name}.yaml" "{params.out_dir}/{params.out_dir_time}_{params.out_dir_tag}/"
+                mkdir -p "{params.config_name}/results"
             fi        
 
-            echo If selected, results move into {params.out_dir} >> {output}
+            echo "If selected, results move into {params.out_dir}" >> {output}
             rm -rf logs
           """
         

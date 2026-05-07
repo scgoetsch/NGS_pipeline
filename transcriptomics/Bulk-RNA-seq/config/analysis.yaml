@@ -2,96 +2,37 @@
 ############################################### User defined params ###############################################
 ###################################################################################################################
 
-### analysis_name: your analysis must have a unique name. This name will be both the name of your configuration file, and the name of the folder with all analysis
-analysis_name: "analysis"
-
-### fastq_home_dir: specify the directory containing the original fastq files
-fastq_home_dir: "<path-to-fastq-files-directory>"
-
-### sample_sheet: optional TSV/CSV manifest with columns: fastq_prefix, concat_sample, merge_sample
-### Leave empty to use the legacy text files in the workflow directory.
-sample_sheet: ""
-
-### single_paired_end: specify if reads are single or paired end ('single' or 'paired')
-single_paired_end: "paired"
-
-### concatenate_fastq: specify if you want to concatenate the reads (true or false)
+analysis_name: "/home/dev/workspace/PHF7_NGS/results/rna_phf7_mm10"
+fastq_home_dir: "/home/dev/workspace/PHF7_NGS/data/sra_fastq_rna"
+sample_sheet: "/home/dev/workspace/PHF7_NGS/projects/phf7_sra_2020/sample_sheets/rna_samples.tsv"
+single_paired_end: "single"
 concatenate_fastq: false
-
-### cutadapters_bool: specify if you want to trim the reads with Trimmomatic (true or false)
 cutadapters_bool: false
 
-### star_dir: specify directory where genome is located
-star_dir: "/<path>/STAR"
-
-### gtf_annotation: specify directory where gene annotation is located
-gtf_annotation: "/<path>/refGene.gtf"
-
-### genome_built_version: version of the built genome. It must be consistent with the aligner_dir chosen
-genome_built_version: "mm39"
-
-### merge_bams: specify if you want to merge the bam files (i.e. if you have many lanes) (true or false)
+star_dir: "/home/dev/workspace/ChIP-seq/reference/STAR_mm10_refseq"
+gtf_annotation: "/home/dev/workspace/ChIP-seq/reference/mm10_refseq_from_bed.gtf"
+genome_built_version: "mm10"
 merge_bams: false
 
-### bigDataUrl: specify the location for public bigWigs and this is the link you can copy and paste into UCSC
-### NB: url must end with a slash ("/")
-bigDataUrl: "https://<path>/"
+bigDataUrl: "file:///home/dev/workspace/PHF7_NGS/results"
 
-
-
-###################################################################################################################
-########################################## Copy/Move folders (Optional) ###########################################
-###################################################################################################################
-
-### move_output_files: specify if you want to move the output files (true or false)
 move_output_files: false
-### Specify the directory where final files must be moved.
 output_dir:        "<path-to-output-directory>"
-### Specify tag output directory.
 tag_output_dir:    "<tag-output-directory>"
 
-###################################################################################################################
-
-### move_bw_public_folder: specify if you want to move the output files in a public folder (true or false).
-### This is required for visualisation on the UCSC genome browser
 move_bw_public_folder: false
-### Specify public directory where bw files must be copied.
 public_output_dir:     "<path-to-output-directory>"
-### Specify tag public output directory.
 tag_public_output_dir: "<tag-output-directory>"
 
-
-###################################################################################################################
-######################################### Optional rule params (Optional) #########################################
-###################################################################################################################
-
-### Option to modify Trimmomatic parameters (see the Trimmomatic user manual)
-trimming_SE_extra:          "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'single'
-trimming_PE_extra:          "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20" # if single_paired_end == 'paired'
-
-### Option to modify samtools_sort parameters
+trimming_SE_extra:          "ILLUMINACLIP:adapters/SE.fa:2:40:15 SLIDINGWINDOW:4:20"
+trimming_PE_extra:          "ILLUMINACLIP:adapters/PE.fa:2:40:15 SLIDINGWINDOW:4:20"
 samtools_sort_extra:        "-m 4G"
-
-### Option to modify mark_duplicates parameters
 mark_duplicates_extra:      "--REMOVE_DUPLICATES False"
-
-### Option to modify samtools_index parameters
 samtools_index_extra:        ""
-
-### bam_coverage_paramsX: option to modify bam_covarage parameters (default for Lanceotron)
-bam_coverage_params1:        "-bs 1 --normalizeUsing RPKM"
+bam_coverage_params1:        "-bs 10 --normalizeUsing CPM"
 bam_coverage_params2:        "--extendReads"
 
-
-
-###################################################################################################################
-############################################ Clean folders (Optional) #############################################
-###################################################################################################################
-
-### delete_intermediate_files: specify if you want to delete intermediate files (true or false)
-delete_intermediate_files: false
-
-### Specify what output must be removed before moving output files (false = keep, true = remove)
+delete_intermediate_files: true
 single_paired_folder_rm: false
 reads_rm:                true
 trimming_rm:             true
@@ -104,42 +45,23 @@ bam_coverage_rm:         false
 feature_counts_rm:       false
 track_rm:                false
 
-
-
-###################################################################################################################
-############################################## Folders (DO NOT touch) #############################################
-###################################################################################################################
-
 tmp:                  "results/tmp"
-
 single_paired_folder: "results/00_fastq_home_dir"
-
 reads:                "results/01_reads/01_original"
 reads_qc:             "QCs/01_reads/01_original"
-
 reads_concat:         "results/01_reads/02_concatenate"
 reads_concat_qc:      "QCs/01_reads/02_concatenate"
-
 trimming:             "results/02_trimming"
 trimming_qc:          "QCs/02_trimming"
-
 star:                 "results/03_star"
 star_qc:              "QCs/03_star"
-
 sorted:               "results/04_sorted"
-
 merge:                "results/05_merge"
 merge_qc:             "QCs/05_merge"
-
 duplicates:           "results/06_duplicates"
 duplicates_qc:        "QCs/06_duplicates"
-
 indices:              "results/07_indices"
-
 bam_coverage:         "results/08_bam_coverages"
-
 feature_counts:       "results/09_feature_counts"
-
 track:                "results/10_track"
-
 cleaning:             "results/"

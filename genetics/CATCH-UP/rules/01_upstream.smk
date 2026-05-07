@@ -227,8 +227,24 @@ rule mark_duplicates:
         extra=config["mark_duplicates_extra"],
     resources:
         mem_mb=1024,
-    wrapper:
-        "v1.3.2/bio/picard/markduplicates" 
+    shell:
+        """
+            mkdir -p $(dirname {output.bam}) $(dirname {output.metrics}) $(dirname {log})
+            tmp_rg="{output.bam}.rg_tmp.bam"
+            trap 'rm -f "$tmp_rg"' EXIT
+            samtools addreplacerg \
+                -r 'ID:{wildcards.sample}' \
+                -r 'SM:{wildcards.sample}' \
+                -r 'LB:{wildcards.sample}' \
+                -r 'PL:ILLUMINA' \
+                -o "$tmp_rg" {input}
+            picard MarkDuplicates \
+                {params.extra} \
+                --INPUT "$tmp_rg" \
+                --OUTPUT {output.bam} \
+                --METRICS_FILE {output.metrics} \
+                > {log} 2>&1
+        """
 
 
 rule merge_bam:
@@ -322,7 +338,7 @@ rule peak_caller:
                     echo lanceotron peak calling, skipped because -bs 1 --normalizeUsing RPKM are different from default settings >> {output}
                 fi
             else
-                macs2 callpeak {params.macs2_extra1} --treatment {input.bam} {params.macs2_extra2} --outdir {params.folder} --name {wildcards.sample_merged}
-                echo {wildcards.sample_merged} macs2 peak calling DONE! >> {output}
+                {params.peak_caller} callpeak {params.macs2_extra1} --treatment {input.bam} {params.macs2_extra2} --outdir {params.folder} --name {wildcards.sample_merged}
+                echo {wildcards.sample_merged} {params.peak_caller} peak calling DONE! >> {output}
             fi
         """  

@@ -7,8 +7,8 @@ Reusable synthetic fixtures now live under `tests/fixtures/`.
 
 ### CATCH-UP
 - install default Pixi environment
-- run `pixi run catch-up-example-dryrun`
-- run a Snakemake dry-run against `tests/fixtures/catch-up-merge-aware/config.yaml`
+- check required runtime tools are on `PATH`
+- run `pixi run catch-up-fixture-dryrun`, which dry-runs `tests/fixtures/catch-up-merge-aware/config.yaml`
 - this fixture validates explicit `sample_name` and `merge_group` handling for concatenation plus BAM merging
 
 ### Reference genomes
@@ -16,11 +16,13 @@ Reusable synthetic fixtures now live under `tests/fixtures/`.
 
 ### Calibrated ChIP-seq
 - install `chip-calibrated` environment
+- check required runtime tools are on `PATH`
 - run a Snakemake dry-run against `tests/fixtures/chip-calibrated-basic/config.yaml`
 - revalidated after DAG hardening to ensure track generation depends on explicit bigWig outputs
 
 ### Bulk RNA-seq
 - install `bulk-rna` environment
+- check required runtime tools are on `PATH`
 - run a Snakemake dry-run against `tests/fixtures/bulk-rna-merge-aware/config.yaml`
 - this fixture validates explicit `sample_name` and `merge_group` handling
 
@@ -29,7 +31,7 @@ Reusable synthetic fixtures now live under `tests/fixtures/`.
 ### CATCH-UP
 ```bash
 cd UpStreamPipeline
-pixi run catch-up-example-dryrun
+pixi run catch-up-fixture-dryrun
 ```
 
 ### Calibrated ChIP-seq

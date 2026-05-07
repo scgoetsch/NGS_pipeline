@@ -48,7 +48,7 @@ properties:
 
   peak_caller:
     type: string
-    enum: [lanceotron, macs2]
+    enum: [lanceotron, macs2, macs3]
 
   bigDataUrl:
     type: string

@@ -49,7 +49,7 @@ From the repository root:
 
 ```bash
 pixi install
-pixi run catch-up-example-dryrun
+pixi run catch-up-fixture-dryrun  # fixture dry-run; no real FASTQs required
 ```
 
 Useful Pixi tasks:

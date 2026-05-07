@@ -49,6 +49,11 @@ def normalize_config(config: dict) -> dict:
     config["single_paired_end"] = str(config["single_paired_end"]).strip().lower()
     config["aligner_algorithm"] = str(config["aligner_algorithm"]).strip().lower()
     config["peak_caller"] = str(config["peak_caller"]).strip().lower()
+    if config["peak_caller"] == "macs2":
+        # The bioconda MACS2 build can be incompatible with newer glibc on some
+        # systems (undefined __log_finite). MACS3 is CLI-compatible for
+        # callpeak, so prefer it automatically when available/configured.
+        config["peak_caller"] = "macs3"
     config["sample_sheet"] = str(config.get("sample_sheet", "")).strip()
     return config
 
@@ -87,6 +92,17 @@ def _read_level_names(prefixes: list[str], single_paired_end: str) -> list[str]:
     return prefixes
 
 
+def _prefix_matches(prefixes: list[str], group: str) -> list[str]:
+    """Return legacy glob-like prefix matches, with exact fallback.
+
+    Older Snakefiles used shell globs such as ``{sample}*`` for lane
+    concatenation and BAM merging. Preserve that behaviour for legacy text-file
+    inputs while letting explicitly named samples continue to work.
+    """
+    matches = [prefix for prefix in prefixes if prefix.startswith(group)]
+    return matches or [group]
+
+
 def _load_legacy_sample_inputs(config: dict, workflow_dir: Path):
     analysis_fastq_dir = _analysis_fastq_dir(config)
     analysis_fastq_dir.mkdir(parents=True, exist_ok=True)
@@ -113,7 +129,7 @@ def _load_legacy_sample_inputs(config: dict, workflow_dir: Path):
         _write_lines(analysis_fastq_dir / "2_fastqfile_concat.txt", sorted(concat_entries))
         origin_fastq_concat = [_strip_fastq_suffix(item) for item in sorted(concat_entries)]
         sample_names = concat_prefixes
-        concat_map = {sample: [sample] for sample in sample_names}
+        concat_map = {sample: _prefix_matches(raw_prefixes, sample) for sample in sample_names}
     else:
         origin_fastq_concat = origin_fastq
         sample_names = raw_prefixes
@@ -127,7 +143,7 @@ def _load_legacy_sample_inputs(config: dict, workflow_dir: Path):
     else:
         merge_sample = list(samples_r.index)
 
-    merge_map = {group: [group] for group in merge_sample}
+    merge_map = {group: _prefix_matches(sample_names, group) for group in merge_sample}
     return origin_fastq, origin_fastq_concat, samples_r, merge_sample, concat_map, merge_map
 
 
@@ -210,8 +226,9 @@ def _load_sample_sheet(config: dict, workflow_dir: Path):
         if (df[merge_column] == "").any():
             raise ValueError(f"Sample sheet column '{merge_column}' cannot contain empty values when merge_bams is true")
         merge_sample = df[merge_column].drop_duplicates().tolist()
+        merge_source_column = "sample_name" if config["concatenate_fastq"] else "fastq_prefix"
         merge_map = {
-            merge_group: group["sample_name"].drop_duplicates().tolist()
+            merge_group: group[merge_source_column].drop_duplicates().tolist()
             for merge_group, group in df.groupby(merge_column, sort=False)
         }
         _write_lines(analysis_fastq_dir / "3_merge_bams.txt", merge_sample)

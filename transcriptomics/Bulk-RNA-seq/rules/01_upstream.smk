@@ -141,6 +141,7 @@ rule star:
         os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["star"], "{sample}Aligned.out.bam"),
+    threads: 8
     params:
         config_name=config["analysis_name"],
         store_star=config["analysis_name"]+os.sep+config["star"],
@@ -148,7 +149,7 @@ rule star:
         sample_s=expand(config["analysis_name"]+os.sep+os.path.join(config["trimming"], "{samples}"), samples=["{sample}.fastq.gz"]),
         idx=config["star_dir"],
         out_folder=config["analysis_name"]+os.sep+config["star"],
-        threads="8",
+        threads=lambda wildcards, threads: threads,
         end=config["single_paired_end"],
         extra="",
     log:
@@ -217,8 +218,24 @@ rule mark_duplicates:
         extra=config["mark_duplicates_extra"],
     resources:
         mem_mb=1024,
-    wrapper:
-        "v1.3.2/bio/picard/markduplicates" 
+    shell:
+        """
+            mkdir -p $(dirname {output.bam}) $(dirname {output.metrics}) $(dirname {log})
+            tmp_rg="{output.bam}.rg_tmp.bam"
+            trap 'rm -f "$tmp_rg"' EXIT
+            samtools addreplacerg \
+                -r 'ID:{wildcards.sample_merged}' \
+                -r 'SM:{wildcards.sample_merged}' \
+                -r 'LB:{wildcards.sample_merged}' \
+                -r 'PL:ILLUMINA' \
+                -o "$tmp_rg" {input}
+            picard MarkDuplicates \
+                {params.extra} \
+                --INPUT "$tmp_rg" \
+                --OUTPUT {output.bam} \
+                --METRICS_FILE {output.metrics} \
+                > {log} 2>&1
+        """
         
         
 rule move_sorted_dedup:

@@ -122,8 +122,8 @@ The project now uses smaller environments:
 CI now checks:
 
 - install default Pixi environment
-- dry-run bundled `CATCH-UP` example
-- dry-run reusable `tests/fixtures/catch-up-merge-aware` fixture
+- required runtime tools are available on `PATH`
+- dry-run reusable `tests/fixtures/catch-up-merge-aware` fixture via `pixi run catch-up-fixture-dryrun`
 - install `reference-genomes` environment
 - install and dry-run reusable `tests/fixtures/chip-calibrated-basic` fixture
 - install and dry-run reusable `tests/fixtures/bulk-rna-merge-aware` fixture
@@ -132,7 +132,7 @@ CI now checks:
 
 Validated locally:
 
-- `pixi run catch-up-example-dryrun`
+- `pixi run catch-up-fixture-dryrun`
 - synthetic merge-aware CATCH-UP dry-run using explicit `sample_name` / `merge_group`
 - synthetic dry-run for calibrated ChIP-seq
 - synthetic dry-run for bulk RNA-seq

@@ -34,6 +34,8 @@ tabulate = ">=0.8,<0.11"
 trimmomatic = ">=0.39,<0.41"
 typing_extensions = ">=4,<5"
 ucsc-bedgraphtobigwig = ">=377,<500"
+macs3 = ">=3.0.3,<4"
+sra-tools = ">=3,<4"
 
 [feature.reference-genomes.dependencies]
 bowtie2 = ">=2.5,<2.6"
@@ -48,6 +50,7 @@ ucsc-bedgraphtobigwig = ">=377,<500"
 [feature.chip-calibrated.dependencies]
 bedtools = ">=2.31,<2.32"
 bowtie2 = ">=2.5,<2.6"
+deeptools = ">=3.5,<3.6"
 fastqc = "0.12.*"
 lanceotron = ">=1.2,<1.3"
 multiqc = ">=1.14,<2"
@@ -57,18 +60,24 @@ samtools = ">=1.16,<2"
 trimmomatic = ">=0.39,<0.41"
 
 [feature.bulk-rna.dependencies]
+deeptools = ">=3.5,<3.6"
 fastqc = "0.12.*"
 multiqc = ">=1.14,<2"
+picard = ">=3,<4"
 r-ggplot2 = ">=3.4,<5"
 r-rcolorbrewer = ">=1.1_3,<2"
+samtools = ">=1.16,<2"
 star = ">=2.7,<2.8"
 subread = ">=2.0,<2.2"
 trimmomatic = ">=0.39,<0.41"
+bioconductor-deseq2 = ">=1.50.2,<2"
+sra-tools = ">=3,<4"
 
 [tasks]
-install-note = "echo 'Run: pixi install && pixi run catch-up-example-dryrun'"
+install-note = "echo 'Run: pixi install && pixi run catch-up-fixture-dryrun'"
 
 [feature.catch-up.tasks]
+catch-up-fixture-dryrun = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=../../tests/fixtures/catch-up-merge-aware/config.yaml -n all --cores 1'"
 catch-up-example-dryrun = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/DNase_example.yaml -n all --cores 1'"
 catch-up-example = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/DNase_example.yaml all --cores ${PIXI_CORES:-2}'"
 catch-up-dryrun = "bash -lc 'cd genetics/CATCH-UP && snakemake --configfile=config/analysis.yaml -n all --cores 1'"
@@ -98,3 +107,9 @@ ucsc-track-hub = ["common", "ucsc-track-hub"]
 chip-calibrated = ["common", "chip-calibrated"]
 bulk-rna = ["common", "bulk-rna"]
 all = ["common", "catch-up", "reference-genomes", "build-calibration-genome", "ucsc-track-hub", "chip-calibrated", "bulk-rna"]
+
+[dependencies]
+cairosvg = ">=2.8.2,<3"
+pypdf = ">=6.0.0,<7"
+reportlab = ">=4.5.0,<5"
+pymupdf = ">=1.24.1,<2"

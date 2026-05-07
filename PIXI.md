@@ -42,15 +42,16 @@ From the repository root:
 pixi install
 ```
 
-Dry-run the bundled DNase example:
+Dry-run the bundled CATCH-UP fixture. This validates the workflow DAG without requiring large example FASTQ downloads:
+
+```bash
+pixi run catch-up-fixture-dryrun
+```
+
+Dry-run or run the bundled DNase example after downloading its FASTQs as described in `genetics/CATCH-UP/README.md`:
 
 ```bash
 pixi run catch-up-example-dryrun
-```
-
-Run the bundled DNase example:
-
-```bash
 PIXI_CORES=2 pixi run catch-up-example
 ```
 
