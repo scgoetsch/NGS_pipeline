@@ -76,3 +76,33 @@ jobs:
         run: |
           rm -rf transcriptomics/Bulk-RNA-seq/.tmp-ci
           pixi run -e bulk-rna bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=../../tests/fixtures/bulk-rna-merge-aware/config.yaml -n all --cores 1'
+
+  ucsc-track-hub-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install ucsc-track-hub environment
+        run: pixi install -e ucsc-track-hub
+
+      - name: Check ucsc-track-hub runtime tools
+        run: pixi run -e ucsc-track-hub bash -lc 'command -v bedGraphToBigWig'
+
+  build-calibration-genome-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.14
+
+      - name: Install build-calibration-genome environment
+        run: pixi install -e build-calibration-genome
+
+      - name: Check build-calibration-genome runtime tools
+        run: pixi run -e build-calibration-genome bash -lc 'command -v bowtie2 bwa-mem2'
