@@ -27,7 +27,7 @@ dependencies:
   - sambamba=1.0=h98b6b92_0
   - samtools=1.16.1=h6899075_1
   - seaborn=0.12.2=py39h06a4308_0
-  - snakemake=7.0.0=hdfd78af_0
+  - snakemake=8.0.0
   - snakemake-wrapper-utils=0.5.3=pyhdfd78af_0
   - ucsc-bedgraphtobigwig=377=ha8a8165_3
   - lanceotron=1.0.8=py_0

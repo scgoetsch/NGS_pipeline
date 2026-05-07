@@ -24,7 +24,7 @@ The Pixi project is split into smaller, per-pipeline environments:
 
 The Pixi environments cover the main tools required by the repository, including:
 
-- Python 3.9
+- Python 3.11
 - Snakemake
 - Bowtie2 / BWA / bwa-mem2
 - samtools / sambamba / picard / bedtools
@@ -91,7 +91,7 @@ pixi run -e bulk-rna bulk-rna
 ## Notes
 
 - The provided Pixi project is currently pinned to `linux-64` because this environment is the most realistic target for the repository's genomics tools and HPC usage.
-- The Snakemake version is constrained to `>=7,<8` to stay close to the repository's current workflow assumptions (`min_version("7.0.0")`).
+- The Snakemake version is constrained to `>=8,<9` to stay close to the repository's current workflow assumptions (`min_version("8.0.0")`).
 - You still need to edit each workflow's `config/analysis.yaml` before running it.
 - `genetics/CATCH-UP` now supports a modern `sample_sheet` entry in the config file, while still supporting the legacy text files.
 

@@ -27,7 +27,7 @@ dependencies:
     - sambamba
     - samtools
     - seaborn
-    - snakemake=7.0.0
+    - snakemake=8.0.0
     - snakemake-wrapper-utils
     - ucsc-bedgraphtobigwig
     - lanceotron

@@ -130,11 +130,11 @@ CI currently checks:
 - reusable calibrated ChIP fixture dry-run
 - reusable bulk RNA fixture dry-run
 
-## Known limitation
+## Snakemake/Python uplift status
 
-A full Snakemake/Python uplift is still deferred.
-The current Pixi environment intentionally remains conservative:
-- Python `3.9.*`
-- Snakemake `>=7,<8`
+The Pixi workspace now targets:
+- Python `3.11.*`
+- Snakemake `>=8,<9`
 
-An attempted move toward Snakemake 9 hit a Python solver mismatch and was not included in this work.
+The earlier solver mismatch is resolved in `pixi.lock` and the reusable CI dry-runs were revalidated after the upgrade.
+Future Snakemake 9 or Python 3.12 work should be tracked separately.
