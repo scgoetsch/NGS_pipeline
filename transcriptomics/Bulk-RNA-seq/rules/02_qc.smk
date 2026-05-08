@@ -10,8 +10,12 @@ rule fastq_fastqc:
     log:
         os.path.join(config["analysis_name"], "logs/01_move_fastq/{sample_or}_fastqc.txt"),
     threads: 1
-    wrapper:
-        "v1.3.2/bio/fastqc"
+    shell:
+        """
+            mkdir -p $(dirname {output.html})
+            fastqc {params} --threads {threads} --outdir $(dirname {output.html}) {input} > {log} 2>&1
+            mv $(dirname {output.html})/{wildcards.sample_or}_fastqc.html {output.html}
+        """
 
 rule trimming_fastqc:
     input:
@@ -66,8 +70,11 @@ rule star_multiqc:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/03_star/{sample}_%s_multiqc.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/multiqc"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+        """
         
         
 rule sorted_dedup_stats:
@@ -95,8 +102,11 @@ rule sorted_dedup_multiqc:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/06_mark_duplicates/{sample_merged}_%s_multiqc.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/multiqc"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+        """
 
 
 rule merge_stats:
@@ -124,5 +134,8 @@ rule merge_multiqc:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/07_merge/{sample_merged}_%s_multiqc.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/multiqc"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+        """
