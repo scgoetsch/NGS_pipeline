@@ -73,7 +73,7 @@ rule aligner_multiqc:
     shell:
         """
             mkdir -p $(dirname {output})
-            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+            multiqc --force {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
         """
         
         
@@ -105,7 +105,7 @@ rule sorted_dedup_multiqc:
     shell:
         """
             mkdir -p $(dirname {output})
-            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+            multiqc --force {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
         """
 
 
@@ -137,5 +137,5 @@ rule merge_multiqc:
     shell:
         """
             mkdir -p $(dirname {output})
-            multiqc {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
+            multiqc --force {params.extra} -n $(basename {output}) -o $(dirname {output}) {input} > {log} 2>&1
         """
