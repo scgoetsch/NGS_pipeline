@@ -210,8 +210,11 @@ rule samtools_sort:
         config_name=config["analysis_name"],
         extra=config["samtools_sort_extra"],
     threads: 8
-    wrapper:
-        "v1.3.2/bio/samtools/sort"  
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools sort {params.extra} -@ {threads} -o {output} {input} > {log} 2>&1
+        """
         
 
 rule mark_duplicates:
@@ -284,8 +287,10 @@ rule samtools_index:
         config_name=config["analysis_name"],
         extra=config["samtools_index_extra"], 
     threads: 4
-    wrapper:
-        "v1.3.2/bio/samtools/index"       
+    shell:
+        """
+            samtools index {params.extra} -@ {threads} {input} {output} > {log} 2>&1
+        """
         
         
 rule bam_coverage:

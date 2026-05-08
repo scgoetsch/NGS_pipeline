@@ -50,8 +50,11 @@ rule aligner_stats:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/03_aligner/{sample}_%s_stats.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/samtools/stats"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools stats {params.extra} {input.bam} > {output} 2> {log}
+        """
 
         
 rule aligner_multiqc:
@@ -76,8 +79,11 @@ rule sorted_dedup_stats:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/06_duplicates/{sample}_%s_stats.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/samtools/stats"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools stats {params.extra} {input.bam} > {output} 2> {log}
+        """
 
         
 rule sorted_dedup_multiqc:
@@ -102,8 +108,11 @@ rule merge_stats:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/07_merge/{sample_merged}_%s_stats.txt"%genomeV),
-    wrapper:
-        "v1.3.2/bio/samtools/stats"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools stats {params.extra} {input.bam} > {output} 2> {log}
+        """
 
         
 rule merge_multiqc:

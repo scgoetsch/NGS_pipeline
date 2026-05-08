@@ -109,8 +109,11 @@ rule samtools_sort:
         config_name=config["analysis_name"],
         extra=config["samtools_sort_extra"],
     threads: 8
-    wrapper:
-        "v1.3.2/bio/samtools/sort"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools sort {params.extra} -@ {threads} -o {output} {input} > {log} 2>&1
+        """
 
 
 rule mark_duplicates:
@@ -126,8 +129,24 @@ rule mark_duplicates:
         extra=config["mark_duplicates_extra"],
     resources:
         mem_mb=1024,
-    wrapper:
-        "v1.3.2/bio/picard/markduplicates"      
+    shell:
+        """
+            mkdir -p $(dirname {output.bam}) $(dirname {output.metrics})
+            tmp_rg="{output.bam}.rg_tmp.bam"
+            trap 'rm -f "$tmp_rg"' EXIT
+            samtools addreplacerg \
+                -r 'ID:{wildcards.sample}' \
+                -r 'SM:{wildcards.sample}' \
+                -r 'LB:{wildcards.sample}' \
+                -r 'PL:ILLUMINA' \
+                -o "$tmp_rg" {input}
+            picard MarkDuplicates \
+                {params.extra} \
+                --INPUT "$tmp_rg" \
+                --OUTPUT {output.bam} \
+                --METRICS_FILE {output.metrics} \
+                > {log} 2>&1
+        """
 
 
 rule split_genome:

@@ -177,8 +177,11 @@ rule samtools_sort:
         config_name=config["analysis_name"],
         extra=config["samtools_sort_extra"],
     threads: 8
-    wrapper:
-        "v1.3.2/bio/samtools/sort"      
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools sort {params.extra} -@ {threads} -o {output} {input} > {log} 2>&1
+        """
 
 
 rule merge_bam:
@@ -266,8 +269,10 @@ rule samtools_index:
         config_name=config["analysis_name"],
         extra=config["samtools_index_extra"], 
     threads: 4
-    wrapper:
-        "v1.3.2/bio/samtools/index"       
+    shell:
+        """
+            samtools index {params.extra} -@ {threads} {input} {output} > {log} 2>&1
+        """
         
         
 rule bam_coverage:
@@ -312,8 +317,17 @@ rule feature_counts:
         extra="-O --fracOverlap 0.2%s"%add_p_featurecounts
     log:
         os.path.join(config["analysis_name"], "logs/09_feature_counts/{sample_merged}_%s.txt"%genomeV),
-    wrapper:
-        "0.72.0/bio/subread/featurecounts"
+    shell:
+        """
+            mkdir -p $(dirname $(echo {output[0]}))
+            featureCounts \
+                {params.extra} \
+                -T {threads} \
+                -a {input.annotation} \
+                -o {output[0]} \
+                {input.sam} \
+                > {log} 2>&1
+        """
 
 
 

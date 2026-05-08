@@ -21,8 +21,11 @@ rule bowtie2_stats:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/03_bowtie2/{sample}_stats.txt"),
-    wrapper:
-        "v1.3.2/bio/samtools/stats"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools stats {params.extra} {input.bam} > {output} 2> {log}
+        """
 
         
 rule bowtie2_multiqc:
@@ -47,8 +50,11 @@ rule sorted_dedup_stats:
         extra="",
     log:
         os.path.join(config["analysis_name"], "logs/05_mark_duplicates/{sample}_stats.txt"),
-    wrapper:
-        "v1.3.2/bio/samtools/stats"
+    shell:
+        """
+            mkdir -p $(dirname {output})
+            samtools stats {params.extra} {input.bam} > {output} 2> {log}
+        """
 
         
 rule sorted_dedup_multiqc:
