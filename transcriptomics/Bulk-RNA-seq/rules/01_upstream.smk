@@ -314,7 +314,7 @@ rule feature_counts:
     params:
         tmp_dir="",   # implicitly sets the --tmpDir flag
         r_path="",    # implicitly sets the --Rpath flag
-        extra="-O --fracOverlap 0.2%s"%add_p_featurecounts
+        extra="-O -J --fracOverlap 0.2%s"%add_p_featurecounts
     log:
         os.path.join(config["analysis_name"], "logs/09_feature_counts/{sample_merged}_%s.txt"%genomeV),
     shell:

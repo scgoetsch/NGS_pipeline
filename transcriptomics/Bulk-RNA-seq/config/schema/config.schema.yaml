@@ -40,7 +40,7 @@ properties:
 
   genome_built_version:
     type: string
-    enum: [hg19, hg38, mm9, mm10, mm39]
+    enum: [hg19, hg38, mm9, mm10, mm39, GRCr8]
 
   merge_bams:
     $ref: "#/definitions/bool_or_legacy_bool"
