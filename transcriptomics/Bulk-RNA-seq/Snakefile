@@ -9,6 +9,8 @@ from workflow_utils import normalize_config, prepare_workflow_inputs
 
 min_version("8.0.0")
 
+shell.prefix("set -euo pipefail; sleep 1; ")
+
 configfile: "config/analysis.yaml"
 
 config = normalize_config(config)

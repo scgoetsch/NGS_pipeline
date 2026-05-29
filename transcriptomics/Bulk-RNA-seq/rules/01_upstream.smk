@@ -203,7 +203,7 @@ rule merge_bam:
             then
                 samtools merge {output} {input.bam}
             else
-                cp {input.bam} {output}
+                sleep 2 && cp {input.bam} {output} && touch {output}
             fi
         """         
         
@@ -254,7 +254,7 @@ rule move_sorted_dedup:
     shell:
         """
             mkdir -p {params.folder_samtools_index}
-            cp {input} {output}
+            sleep 2 && cp {input} {output} && touch {output}
         """ 
         
         
