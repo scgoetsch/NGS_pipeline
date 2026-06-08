@@ -98,6 +98,14 @@ chip-calibrated = "bash -lc 'cd genetics/ChIP-Seq-Calibrated && snakemake --conf
 [feature.bulk-rna.tasks]
 bulk-rna = "bash -lc 'cd transcriptomics/Bulk-RNA-seq && snakemake --configfile=config/analysis.yaml all --cores ${PIXI_CORES:-4}'"
 
+[feature.demux.dependencies]
+cellsnp-lite = ">=1.2,<2"
+samtools = ">=1.16,<2"
+vireosnp = ">=0.5,<1"
+
+[feature.demux.tasks]
+demux-test = "cellsnp-lite --help && vireo --help && echo 'demux tools OK'"
+
 [environments]
 default = ["common", "catch-up"]
 catch-up = ["common", "catch-up"]
@@ -106,6 +114,7 @@ build-calibration-genome = ["common", "build-calibration-genome"]
 ucsc-track-hub = ["common", "ucsc-track-hub"]
 chip-calibrated = ["common", "chip-calibrated"]
 bulk-rna = ["common", "bulk-rna"]
+demux = ["common", "demux"]
 all = ["common", "catch-up", "reference-genomes", "build-calibration-genome", "ucsc-track-hub", "chip-calibrated", "bulk-rna"]
 
 [dependencies]
