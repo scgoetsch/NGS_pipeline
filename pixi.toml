@@ -72,6 +72,7 @@ subread = ">=2.0,<2.2"
 trimmomatic = ">=0.39,<0.41"
 bioconductor-deseq2 = ">=1.50.2,<2"
 sra-tools = ">=3,<4"
+bioconductor-apeglm = ">=1.32.0,<2"
 
 [tasks]
 install-note = "echo 'Run: pixi install && pixi run catch-up-fixture-dryrun'"
