@@ -60,6 +60,11 @@ samtools = ">=1.16,<2"
 trimmomatic = ">=0.39,<0.41"
 
 [feature.bulk-rna.dependencies]
+# scipy + matplotlib are imported directly by scripts/plot_results.py (Wald-z volcano
+# axis, figures). They previously arrived only transitively via deeptools; declare them
+# explicitly so the direct imports can't silently break if deeptools' deps change.
+scipy = ">=1.10"
+matplotlib-base = ">=3.7"
 deeptools = ">=3.5,<3.6"
 fastqc = "0.12.*"
 multiqc = ">=1.14,<2"
