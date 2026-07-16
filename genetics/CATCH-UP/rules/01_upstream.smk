@@ -134,6 +134,14 @@ rule aligner:
         os.path.join(config["analysis_name"]+os.sep+config["trimming_qc"], "{sample}_qc.txt"),
     output:
         os.path.join(config["analysis_name"]+os.sep+config["aligner"], "{sample}_%s.bam"%genomeV),
+    # A real `threads:` directive, not just a params value. Previously the aligner passed a
+    # hardcoded params threads="4" to bowtie2 while declaring nothing to snakemake, so the
+    # scheduler believed the rule cost 1 CPU: it oversubscribed during the parallel phase
+    # (N concurrent 4-thread aligners on --cores N) and then STARVED in the tail, running one
+    # 4-thread bowtie2 on a 32-core node. Measured cost: a 231.9M-pair PE150 input took >12 h
+    # at 400% CPU while 28 of 32 cores idled. Declaring threads lets snakemake both size the
+    # process and stop overcommitting. Default stays 4, so existing configs are unchanged.
+    threads: int(config.get("aligner_threads", 4))
     params:
         config_name=config["analysis_name"],
         sample_p=expand(config["analysis_name"]+os.sep+os.path.join(config["trimming"], "{samples}"), samples=["{sample}%s"%extB for extB in ext_aligner]),
@@ -141,7 +149,6 @@ rule aligner:
         aligner_algorithm=config['aligner_algorithm'],
         idx=config["aligner_dir"],
         out_folder=config["analysis_name"]+os.sep+config["aligner"],
-        threads="4",
         end=config["single_paired_end"],
         extra=config["aligner_extra"],
     log:
@@ -155,17 +162,17 @@ rule aligner:
 
                 if [ {params.end} == "paired" ]
                 then
-                    (bowtie2 --threads {params.threads} -1 {params.sample_p[0]} -2 {params.sample_p[1]} -x {params.idx} {params.extra} | samtools view -o {output} --output-fmt BAM -) > {log}
+                    (bowtie2 --threads {threads} -1 {params.sample_p[0]} -2 {params.sample_p[1]} -x {params.idx} {params.extra} | samtools view -o {output} --output-fmt BAM -) > {log}
                 else
-                    (bowtie2 --threads {params.threads} -U {params.sample_s} -x {params.idx} {params.extra} | samtools view -o {output} --output-fmt BAM -) > {log}
+                    (bowtie2 --threads {threads} -U {params.sample_s} -x {params.idx} {params.extra} | samtools view -o {output} --output-fmt BAM -) > {log}
                 fi
             else
                 if [ {params.end} == "paired" ]
                 then
-                    bwa-mem2 mem -t {params.threads} {params.idx} {params.sample_p[0]} {params.sample_p[1]} | samtools view -@ {params.threads} -bh > {output}
+                    bwa-mem2 mem -t {threads} {params.idx} {params.sample_p[0]} {params.sample_p[1]} | samtools view -@ {threads} -bh > {output}
                     echo bwa-mem2 Done! >> {log}
                 else
-                    bwa-mem2 mem -t {params.threads} {params.idx} {params.sample_s} | samtools view -@ {params.threads} -bh > {output}
+                    bwa-mem2 mem -t {threads} {params.idx} {params.sample_s} | samtools view -@ {threads} -bh > {output}
                     echo bwa-mem2 Done! >> {log}
                 fi
             fi
