@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import shutil
+import tempfile
 import pandas as pd
 
 
@@ -66,15 +68,37 @@ def _strip_fastq_suffix(name: str) -> str:
     return str(name).strip().replace(".fastq.gz", "")
 
 
-def _write_lines(path: Path, lines: list[str]) -> None:
+def _atomic_write(path: Path, render) -> None:
+    """Write via a private temp file + os.replace so readers never see a partial file.
+
+    Snakemake 8 re-imports the workflow in every spawned `run:` job process, so the
+    module-level prepare_workflow_inputs() call runs concurrently once per such job. A
+    plain open(path, "w") truncates in place, and a concurrent importer reading the same
+    path observes an empty file (pandas EmptyDataError). os.replace is atomic on POSIX.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w") as handle:
+    # mkstemp, not pid-suffixed: os.getpid() collides across threads in one process.
+    fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    tmp = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w") as handle:
+            render(handle)
+        os.replace(tmp, path)
+    except BaseException:
+        tmp.unlink(missing_ok=True)
+        raise
+
+
+def _write_lines(path: Path, lines: list[str]) -> None:
+    def _render(handle):
         for line in lines:
             handle.write(f"{line}\n")
 
+    _atomic_write(path, _render)
+
 
 def _build_samples_df(sample_names: list[str], single_paired_end: str, path: Path) -> pd.DataFrame:
-    with path.open("w") as handle:
+    def _render(handle):
         if single_paired_end == "paired":
             handle.write("sample\tr1\tr2\n")
             for sample in sample_names:
@@ -83,6 +107,8 @@ def _build_samples_df(sample_names: list[str], single_paired_end: str, path: Pat
             handle.write("sample\tr\n")
             for sample in sample_names:
                 handle.write(f"{sample}\t{sample}.fastq.gz\n")
+
+    _atomic_write(path, _render)
     return pd.read_csv(path, index_col="sample", sep="\t")
 
 
