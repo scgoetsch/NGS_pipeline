@@ -1,4 +1,5 @@
-.pixi/
+.pixi/*
+!.pixi/config.toml
 __pycache__/
 *.pyc
 .tmp-pixi-test/
